@@ -173,6 +173,7 @@ components:
         totalElements:
           type: integer
           description: Total number of elements in the page
+          x-go-type: int64
         totalPages:
           type: integer
           description: Total number of pages

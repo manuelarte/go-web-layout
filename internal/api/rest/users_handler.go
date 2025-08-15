@@ -24,18 +24,18 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
-	up, err := h.service.GetAll(ctx, ptrutils.DerefOr(request.Params.Page, 0), ptrutils.DerefOr(request.Params.Size, 0))
+	pageUsers, err := h.service.GetAll(ctx, page, size)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users: %w", err)
 	}
 
 	return GetUsers200JSONResponse{
-		Data: transformUserDaoToDto(up),
+		Data: transformUserDaoToDto(pageUsers.Data),
 		Page: Page{
 			Number:        page,
 			Size:          size,
-			TotalElements: 0, // TODO(manuelarte): Implement this
-			TotalPages:    0, // TODO(manuelarte): Implement this
+			TotalElements: int(pageUsers.TotalElements),
+			TotalPages:    pageUsers.TotalPages,
 		},
 	}, nil
 }

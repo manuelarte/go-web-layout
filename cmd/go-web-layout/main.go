@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"errors"
+	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -20,18 +22,31 @@ import (
 func main() {
 	err := run()
 	if err != nil {
-		log.Panic().Err(err)
-		os.Exit(1)
+		log.Panic().Err(err).Msg("Failed to run server")
 	}
 }
 
 func run() error {
+	ctx := context.Background()
+
+	db, err := config.Migrate()
+	if err != nil {
+		return err
+	}
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to close database")
+		}
+	}(db)
+
 	cfg, err := env.ParseAs[config.AppEnv]()
 	if err != nil {
 		return err
 	}
 
-	userService := users.NewService()
+	userRepo := users.NewRepository(db)
+	userService := users.NewService(userRepo)
 
 	r := chi.NewRouter()
 
@@ -50,6 +65,9 @@ func run() error {
 		Addr:              cfg.HttpServeAddress,
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
+		BaseContext: func(net.Listener) context.Context {
+			return ctx
+		},
 	}
 
 	log.Printf("Starting server on port %s", srv.Addr)
