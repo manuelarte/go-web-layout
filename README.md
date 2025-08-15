@@ -8,10 +8,6 @@ Example layout for a Go web application.
 
 ## 🚀 Features
 
-### App configuration through viper
-
-TODO
-
 ### Database Migration with golang-migrate
 
 This project is using [golang-migrate](https://github.com/golang-migrate/migrate) to manage database migrations.
