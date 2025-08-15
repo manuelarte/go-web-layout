@@ -1,0 +1,20 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/manuelarte/go-web-layout/api/grpc
+  # Don't modify any file option or field option for protovalidate. Without
+  # this, generated Go will fail to compile.
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: internal/api/grpc
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go
+    out: internal/api/grpc
+    opt: paths=source_relative
+inputs:
+  - directory: proto

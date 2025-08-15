@@ -1,0 +1,4 @@
+[default.extend-words]
+teh = "decorder"
+[files]
+extend-exclude = ["go.mod", "**/*gen.go"]

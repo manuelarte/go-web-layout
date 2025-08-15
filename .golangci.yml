@@ -23,28 +23,25 @@ formatters:
 linters:
   default: all
   disable:
-    - decorder  # If applicable, to be checked in code reviews.
-    - dupl  # Too many false positives.
-    - err113  # This leads to lots of unnecessary allocations and boilerplate.
-    - errchkjson  # No json.
-    - exhaustruct  # If applicable, to be checked in code reviews.
-    - forcetypeassert  # Used in a different linter
+    - decorder # If applicable, to be checked in code reviews.
+    - dupl # Too many false positives.
+    - err113 # This leads to lots of unnecessary allocations and boilerplate.
+    - errchkjson # No json.
+    - exhaustruct # If applicable, to be checked in code reviews.
+    - forcetypeassert # Used in a different linter
     - ginkgolinter # Related to Ginkgo.
-    - goheader  # No need of copyright headers.
-    - gomodguard  # Not needed for a linter
-    - gosmopolitan  # No i18n.
-    - importas  # No need of aliasing imports.
-    - inamedparam  # Not important.
-    - ireturn  # No need for this linter here.
+    - goheader # No need of copyright headers.
+    - gomodguard # Not needed for a linter
+    - gosmopolitan # No i18n.
+    - importas # No need of aliasing imports.
+    - inamedparam # Not important.
+    - ireturn # No need for this linter here.
     - promlinter # Related to prometheus.
     - rowserrcheck # Related to SQL.
     - spancheck # Related to OpenTelemetry.
     - sqlclosecheck # Related to SQL.
-    - tagliatelle  # No need for tags.
-    - testpackage  # We are testing using google tools.
-    - varnamelen  # If applicable, to be checked in a code review.
-    - wsl  # Deprecated, using wsl_v5
-    - zerologlint  # Not using zerolog.
+    - varnamelen # To be checked in code reviews.
+    - wsl # Deprecated, using wsl_v5.
 
   settings:
     cyclop:
@@ -74,6 +71,8 @@ linters:
           deny:
             - pkg: math/rand$
               desc: Use math/rand/v2 instead, see https://go.dev/blog/randv2
+    embeddedstructfieldcheck:
+      forbid-mutex: true
     errcheck:
       check-type-assertions: true
     exhaustive:

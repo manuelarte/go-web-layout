@@ -1,0 +1,217 @@
+---
+openapi: 3.0.1
+info:
+  contact:
+    name: manuelarte <https://github.com/manuelarte>
+  description: Go Web Layout, an example of a Go Web Project layout.
+  title: Go-Web-Layout
+  version: '0.0.1'
+
+paths:
+  /actuators/info:
+    get:
+      operationId: Actuators Info
+      description: Get info about the application.
+      summary: Actuators
+      tags:
+        - actuators
+        - info
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /actuators/health:
+    get:
+      operationId: Actuators Health
+      description: Get health information about the application.
+      summary: Actuators
+      tags:
+        - actuators
+        - health
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /api/v1/users:
+    get:
+      operationId: Get Users
+      description: Get all users.
+      summary: Users
+      tags:
+        - users
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - name: size
+          in: query
+          description: Page size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageUsers'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - details
+      properties:
+        code:
+          type: integer
+          description: The resulting http code
+        message:
+          type: string
+          description: Description of the error occurred
+        details: {}
+    Health:
+      type: object
+      description: Health checks about the status of the app
+      required:
+        - status
+        - components
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+        components:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/HealthComponent'
+    HealthComponent:
+      type: object
+      description: Information about the health check
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+        details: {}
+    HealthStatus:
+      type: string
+      description: Status of the health check
+      enum: ['UP', 'DOWN']
+    Info:
+      type: object
+      description: Info about the version deployed
+      required:
+        - app
+        - git
+      properties:
+        app:
+          $ref: '#/components/schemas/InfoApp'
+        git:
+          $ref: '#/components/schemas/InfoGit'
+    InfoApp:
+      type: object
+      required:
+        - name
+        - description
+        - version
+      properties:
+        name:
+          type: string
+          description: Name of the app
+        description:
+          type: string
+          description: Description of the app
+        version:
+          type: string
+          description: Version of the app
+    InfoGit:
+      type: object
+      required:
+        - commitId
+        - branch
+        - buildTime
+        - buildUrl
+      properties:
+        commitId:
+          type: string
+          description: Commit id of the version deployed
+        branch:
+          type: string
+          description: Branch the app was built from
+        buildTime:
+          type: string
+          description: Build time of the version deployed
+        buildUrl:
+          format: url
+          type: string
+          description: The pipeline url that built this version
+    Page:
+      type: object
+      required:
+        - size
+        - totalElements
+        - totalPages
+        - number
+      properties:
+        size:
+          type: integer
+          description: Size of the page
+        totalElements:
+          type: integer
+          description: Total number of elements in the page
+        totalPages:
+          type: integer
+          description: Total number of pages
+        number:
+          type: integer
+          description: Current page number
+    PageUsers:
+      type: object
+      required:
+        - data
+        - page
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/Page'
+    User:
+      type: object
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - username
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Id of the user
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date of the user
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date of the user
+        username:
+          type: string
+          description: Username of the user
+

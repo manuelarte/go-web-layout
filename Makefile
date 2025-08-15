@@ -21,6 +21,16 @@ test: ## Run unit tests, alias: t
 fmt: format-code
 format-code: tidy ## Format go code and run the fixer, alias: fmt
 	golangci-lint fmt
-	golangci-lint run --fix ./...
+	buf format -w
 .PHONY: fmt format-code
+
+lint:
+	golangci-lint run --fix ./...
+	buf lint
+
+tools:: ## install tools needed to build KachING
+	@go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	@go install github.com/bufbuild/buf/cmd/buf@v1.56.0
+
+.PHONY: tools
 
