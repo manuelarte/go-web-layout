@@ -11,7 +11,11 @@ help:
 
 dr: docker-run
 docker-run:
-	docker build --tag github.com/manuelarte/go-web-layout .
+	docker build \
+		--build-arg="BRANCH=$(BRANCH)" \
+		--build-arg="BUILD_TIME=$(BUILD_TIME)" \
+		--build-arg="COMMIT_ID=$(COMMIT_ID)" \
+		--tag github.com/manuelarte/go-web-layout .
 	docker run --publish 3001:3001 github.com/manuelarte/go-web-layout
 
 tidy: ## Run go mod tidy in all directories
