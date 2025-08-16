@@ -83,7 +83,7 @@ type Page struct {
 	Size int `json:"size"`
 
 	// TotalElements Total number of elements in the page
-	TotalElements int `json:"totalElements"`
+	TotalElements int64 `json:"totalElements"`
 
 	// TotalPages Total number of pages
 	TotalPages int `json:"totalPages"`

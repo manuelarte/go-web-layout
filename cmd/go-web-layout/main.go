@@ -20,6 +20,7 @@ import (
 )
 
 //go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../openapi.yml
+//go:generate sqlc generate -f ../../sqlc.yml
 func main() {
 	err := run()
 	if err != nil {
