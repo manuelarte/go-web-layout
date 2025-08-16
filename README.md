@@ -27,3 +27,17 @@ API specification in [openapi.yml](openapi.yml) and code automatically generated
 #### gRPC API
 
 The gRPC API is defined in the folder [proto/](proto), and the generated code with [buf](https://buf.build/) is in the folder [./internal/api/grpc](./internal/api/grpc).
+
+## 🛠️ Getting Started
+
+Run the project by:
+
+```bash
+go run ./cmd/go-web-layout/.
+```
+
+Or you can run it with docker using:
+
+```bash
+make dr
+```

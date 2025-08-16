@@ -40,7 +40,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		Page: Page{
 			Number:        page,
 			Size:          size,
-			TotalElements: int(pageUsers.TotalElements()),
+			TotalElements: pageUsers.TotalElements(),
 			TotalPages:    pageUsers.TotalPages(),
 		},
 	}, nil
