@@ -4,22 +4,26 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/manuelarte/go-template)](https://goreportcard.com/report/github.com/manuelarte/go-template)
 ![version](https://img.shields.io/github/v/release/manuelarte/go-template)
 
-Example layout for a Go web application.
+A production-ready template for Go web applications featuring modern tooling and best practices.
 
-## 🚀 Features
+## 🚀 Key Features
 
-### Database Migration with golang-migrate
+### Database Layer
 
-This project is using [golang-migrate](https://github.com/golang-migrate/migrate) to manage database migrations.
-Inside the folder [./resources/migrations](./resources/migrations) you can find the migrations files.
-They are embedded in the binary using [go-embed](https://pkg.go.dev/embed).
+#### Migrations
 
-### REST API Generation using oapi-codegen
+Managed via [go-embed](https://pkg.go.dev/embed) migration files in [./resources/migrations](./resources/migrations) using [golang-migrate](https://github.com/golang-migrate/migrate).
 
-This project is using [oapi-codegen](https://github.com/deepmap/oapi-codegen) to generate the REST API.
-The API is defined in the file [openapi.yml](openapi.yml), and the generated code is in the folder [./internal/api/rest](./internal/api/rest).
+#### Type-safe SQL
 
-### GRPC Api Generation using protoc-gen-go and buf
+All queries generated at compile time with [sqlc](https://sqlc.dev/).
 
-This project is using [buf](https://buf.build/) to generate the GRPC API.
-The GRPC API is defined in the folder [proto/](proto/), and the generated code is in the folder [./internal/api/grpc](./internal/api/grpc).
+### API Layers
+
+#### REST API
+
+API specification in [openapi.yml](openapi.yml) and code automatically generated with [oapi-codegen](https://github.com/deepmap/oapi-codegen).
+
+#### gRPC API
+
+The gRPC API is defined in the folder [proto/](proto), and the generated code with [buf](https://buf.build/) is in the folder [./internal/api/grpc](./internal/api/grpc).

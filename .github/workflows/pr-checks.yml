@@ -50,7 +50,15 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.2
-
+  hadolint:
+    name: hadolint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Dockerfile lint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
   spell:
     name: "Spell check"
     runs-on: ubuntu-latest
