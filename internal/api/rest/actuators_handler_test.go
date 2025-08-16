@@ -37,6 +37,7 @@ func TestActuatorsHandler_ActuatorsInfoRoute(t *testing.T) {
 
 	// Assert
 	require.Equal(t, http.StatusOK, w.Code)
+
 	var actual Info
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &actual))
 	assert.Equal(t, expected, actual)

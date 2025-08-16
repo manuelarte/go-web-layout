@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// User model to represent a user.
 type User struct {
 	ID        uuid.UUID
 	CreatedAt time.Time

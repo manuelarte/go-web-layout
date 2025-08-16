@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -31,12 +32,12 @@ func run() error {
 
 	db, err := config.Migrate()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to migrate the database: %w", err)
 	}
 	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to close database")
+		errClose := db.Close()
+		if errClose != nil {
+			log.Error().Err(errClose).Msg("Failed to close database")
 		}
 	}(db)
 
@@ -62,7 +63,7 @@ func run() error {
 	createRestAPI(r, userService)
 
 	srv := &http.Server{
-		Addr:              cfg.HttpServeAddress,
+		Addr:              cfg.HTTPServeAddress,
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
 		BaseContext: func(net.Listener) context.Context {
@@ -71,8 +72,10 @@ func run() error {
 	}
 
 	log.Printf("Starting server on port %s", srv.Addr)
-	if err = srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return err
+
+	err = srv.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("failed to start server: %w", err)
 	}
 
 	return nil

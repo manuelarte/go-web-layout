@@ -15,8 +15,9 @@ import (
 func Migrate() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "test.db?cache=shared&mode=memory")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
+
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate sqlit3 driver: %w", err)

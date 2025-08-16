@@ -7,6 +7,7 @@ import (
 	"github.com/manuelarte/ptrutils"
 	"github.com/samber/lo"
 
+	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -24,18 +25,23 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
-	pageUsers, err := h.service.GetAll(ctx, page, size)
+	pr, err := pagination.NewPageRequest(page, size)
+	if err != nil {
+		return nil, fmt.Errorf("error creating page request: %w", err)
+	}
+
+	pageUsers, err := h.service.GetAll(ctx, pr)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users: %w", err)
 	}
 
 	return GetUsers200JSONResponse{
-		Data: transformUserDaoToDto(pageUsers.Data),
+		Data: transformUserDaoToDto(pageUsers.Data()),
 		Page: Page{
 			Number:        page,
 			Size:          size,
-			TotalElements: int(pageUsers.TotalElements),
-			TotalPages:    pageUsers.TotalPages,
+			TotalElements: int(pageUsers.TotalElements()),
+			TotalPages:    pageUsers.TotalPages(),
 		},
 	}, nil
 }

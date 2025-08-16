@@ -35,11 +35,14 @@ linters:
     - gosmopolitan # No i18n.
     - importas # No need of aliasing imports.
     - inamedparam # Not important.
+    - iface # No need for this linter here.
     - ireturn # No need for this linter here.
+    - mnd # To be checked in code reviews.
     - promlinter # Related to prometheus.
     - rowserrcheck # Related to SQL.
     - spancheck # Related to OpenTelemetry.
     - sqlclosecheck # Related to SQL.
+    - testpackage # I want to test internal packages.
     - varnamelen # To be checked in code reviews.
     - wsl # Deprecated, using wsl_v5.
 
