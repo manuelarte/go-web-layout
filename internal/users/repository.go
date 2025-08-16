@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	appcontext "github.com/manuelarte/go-web-layout/internal/context"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
@@ -35,6 +38,9 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
+	_, span := ctx.Value(appcontext.Tracer{}).(oteltrace.Tracer).Start(ctx, "GetAll", oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())))
+	defer span.End()
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return pagination.Page[User]{}, fmt.Errorf("error starting transaction: %w", err)
