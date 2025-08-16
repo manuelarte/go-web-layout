@@ -215,4 +215,3 @@ components:
         username:
           type: string
           description: Username of the user
-

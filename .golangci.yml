@@ -23,28 +23,28 @@ formatters:
 linters:
   default: all
   disable:
-    - decorder # If applicable, to be checked in code reviews.
-    - dupl # Too many false positives.
-    - err113 # This leads to lots of unnecessary allocations and boilerplate.
-    - errchkjson # No json.
-    - exhaustruct # If applicable, to be checked in code reviews.
-    - forcetypeassert # Used in a different linter
-    - ginkgolinter # Related to Ginkgo.
-    - goheader # No need of copyright headers.
-    - gomodguard # Not needed for a linter
-    - gosmopolitan # No i18n.
-    - importas # No need of aliasing imports.
-    - inamedparam # Not important.
-    - iface # No need for this linter here.
-    - ireturn # No need for this linter here.
-    - mnd # To be checked in code reviews.
-    - promlinter # Related to prometheus.
-    - rowserrcheck # Related to SQL.
-    - spancheck # Related to OpenTelemetry.
-    - sqlclosecheck # Related to SQL.
-    - testpackage # I want to test internal packages.
-    - varnamelen # To be checked in code reviews.
-    - wsl # Deprecated, using wsl_v5.
+    - decorder  # If applicable, to be checked in code reviews.
+    - dupl  # Too many false positives.
+    - err113  # This leads to lots of unnecessary allocations and boilerplate.
+    - errchkjson  # No json.
+    - exhaustruct  # If applicable, to be checked in code reviews.
+    - forcetypeassert  # Used in a different linter
+    - ginkgolinter  # Related to Ginkgo.
+    - goheader  # No need of copyright headers.
+    - gomodguard  # Not needed for a linter
+    - gosmopolitan  # No i18n.
+    - importas  # No need of aliasing imports.
+    - inamedparam  # Not important.
+    - iface  # No need for this linter here.
+    - ireturn  # No need for this linter here.
+    - mnd  # To be checked in code reviews.
+    - promlinter  # Related to prometheus.
+    - rowserrcheck  # Related to SQL.
+    - spancheck  # Related to OpenTelemetry.
+    - sqlclosecheck  # Related to SQL.
+    - testpackage  # I want to test internal packages.
+    - varnamelen  # To be checked in code reviews.
+    - wsl  # Deprecated, using wsl_v5.
 
   settings:
     cyclop:
@@ -141,7 +141,7 @@ linters:
         - name: filename-format
           arguments:
             - ^[a-z][_a-z0-9]*.go$
-        - name: var-naming # badPackageNames not working
+        - name: var-naming
     sloglint:
       no-global: all
       context: scope
