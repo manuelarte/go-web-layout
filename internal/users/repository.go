@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	appcontext "github.com/manuelarte/go-web-layout/internal/context"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
+	"github.com/manuelarte/go-web-layout/internal/tracing"
 )
 
 var _ Repository = new(repository)
@@ -38,7 +38,11 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
-	_, span := ctx.Value(appcontext.Tracer{}).(oteltrace.Tracer).Start(ctx, "GetAll", oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())))
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Repository.GetAll",
+		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
+	)
 	defer span.End()
 
 	tx, err := r.db.BeginTx(ctx, nil)

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	appcontext "github.com/manuelarte/go-web-layout/internal/context"
-	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
+
+	"github.com/manuelarte/go-web-layout/internal/pagination"
+	"github.com/manuelarte/go-web-layout/internal/tracing"
 )
 
 var _ Service = new(service)
@@ -27,7 +28,11 @@ func NewService(r Repository) Service {
 }
 
 func (s service) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
-	_, span := ctx.Value(appcontext.Tracer{}).(oteltrace.Tracer).Start(ctx, "GetAll", oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())))
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Service.GetAll",
+		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
+	)
 	defer span.End()
 
 	pageUsers, err := s.repository.GetAll(ctx, pr)
