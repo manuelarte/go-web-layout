@@ -11,7 +11,7 @@ var _ Service = new(service)
 
 type (
 	Service interface {
-		GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error)
+		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
 	service struct {

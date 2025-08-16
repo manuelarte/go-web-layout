@@ -18,7 +18,7 @@ var _ Repository = new(repository)
 
 type (
 	Repository interface {
-		GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error)
+		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
 	repository struct {
