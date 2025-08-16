@@ -13,7 +13,7 @@ import (
 )
 
 func Migrate() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "test.db?cache=shared&mode=memory")
+	db, err := sql.Open("sqlite3", "file:test.db?cache=shared&mode=memory")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
