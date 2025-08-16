@@ -3,10 +3,11 @@ package users
 import (
 	"testing"
 
-	"github.com/manuelarte/go-web-layout/internal/config"
-	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/pagination"
 )
 
 func TestRepository_GetAll_Successful(t *testing.T) {
@@ -19,19 +20,19 @@ func TestRepository_GetAll_Successful(t *testing.T) {
 	}{
 		"empty": {
 			pageRequest: pagination.MustPageRequest(0, 20),
-			expected: func(migrated []User, pr pagination.PageRequest) (expected pagination.Page[User]) {
+			expected: func(migrated []User, pr pagination.PageRequest) pagination.Page[User] {
 				return pagination.MustPage[User](nil, pr, 1)
 			},
 		},
 	}
 	for name, test := range tests {
-		// test := test // NOTE: uncomment for Go < 1.22, see /doc/faq#closures_and_goroutines
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
 			db, err := config.Migrate()
 			require.NoError(t, err)
+
 			r := NewRepository(db)
 			pr := pagination.MustPageRequest(0, 10)
 
