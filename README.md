@@ -1,20 +1,43 @@
-# TODO Project Name
+# Go Web Layout
 
 [![Go](https://github.com/manuelarte/go-template/actions/workflows/go.yml/badge.svg)](https://github.com/manuelarte/go-template/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/manuelarte/go-template)](https://goreportcard.com/report/github.com/manuelarte/go-template)
 ![version](https://img.shields.io/github/v/release/manuelarte/go-template)
 
-> [!NOTE]
-> Add your project info and replace go-template with your project name
+A production-ready template for Go web applications featuring modern tooling and best practices.
 
-## ⬇️  Getting Started
+## 🚀 Key Features
 
-To install it run:
+### Database Layer
+
+#### Migrations
+
+Managed via [go-embed](https://pkg.go.dev/embed) migration files in [./resources/migrations](./resources/migrations) using [golang-migrate](https://github.com/golang-migrate/migrate).
+
+#### Type-safe SQL
+
+All queries generated at compile time with [sqlc](https://sqlc.dev/).
+
+### API Layers
+
+#### REST API
+
+API specification in [openapi.yml](openapi.yml) and code automatically generated with [oapi-codegen](https://github.com/deepmap/oapi-codegen).
+
+#### gRPC API
+
+The gRPC API is defined in the folder [proto/](proto), and the generated code with [buf](https://buf.build/) is in the folder [./internal/api/grpc](./internal/api/grpc).
+
+## 🛠️ Getting Started
+
+Run the project by:
 
 ```bash
-go install github.com/manuelarte/go-template@latest
+go run ./cmd/go-web-layout/.
 ```
 
-## 🚀 Features
+Or you can run it with docker using:
 
-Explain features
+```bash
+make dr
+```

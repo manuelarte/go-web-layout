@@ -29,22 +29,22 @@ linters:
     - errchkjson  # No json.
     - exhaustruct  # If applicable, to be checked in code reviews.
     - forcetypeassert  # Used in a different linter
-    - ginkgolinter # Related to Ginkgo.
+    - ginkgolinter  # Related to Ginkgo.
     - goheader  # No need of copyright headers.
     - gomodguard  # Not needed for a linter
     - gosmopolitan  # No i18n.
     - importas  # No need of aliasing imports.
     - inamedparam  # Not important.
+    - iface  # No need for this linter here.
     - ireturn  # No need for this linter here.
-    - promlinter # Related to prometheus.
-    - rowserrcheck # Related to SQL.
-    - spancheck # Related to OpenTelemetry.
-    - sqlclosecheck # Related to SQL.
-    - tagliatelle  # No need for tags.
-    - testpackage  # We are testing using google tools.
-    - varnamelen  # If applicable, to be checked in a code review.
-    - wsl  # Deprecated, using wsl_v5
-    - zerologlint  # Not using zerolog.
+    - mnd  # To be checked in code reviews.
+    - promlinter  # Related to prometheus.
+    - rowserrcheck  # Related to SQL.
+    - spancheck  # Related to OpenTelemetry.
+    - sqlclosecheck  # Related to SQL.
+    - testpackage  # I want to test internal packages.
+    - varnamelen  # To be checked in code reviews.
+    - wsl  # Deprecated, using wsl_v5.
 
   settings:
     cyclop:
@@ -74,6 +74,8 @@ linters:
           deny:
             - pkg: math/rand$
               desc: Use math/rand/v2 instead, see https://go.dev/blog/randv2
+    embeddedstructfieldcheck:
+      forbid-mutex: true
     errcheck:
       check-type-assertions: true
     exhaustive:
@@ -139,7 +141,7 @@ linters:
         - name: filename-format
           arguments:
             - ^[a-z][_a-z0-9]*.go$
-        - name: var-naming # badPackageNames not working
+        - name: var-naming
     sloglint:
       no-global: all
       context: scope

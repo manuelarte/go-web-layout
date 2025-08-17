@@ -3,5 +3,6 @@
 markdownlint-cli2 ./**/*.md
 codespell .
 yamllint .
+hadolint Dockerfile
 go test ./...
 
