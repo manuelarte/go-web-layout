@@ -1,8 +1,7 @@
 # Go Web Layout
 
-[![Go](https://github.com/manuelarte/go-template/actions/workflows/go.yml/badge.svg)](https://github.com/manuelarte/go-template/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/manuelarte/go-template)](https://goreportcard.com/report/github.com/manuelarte/go-template)
-![version](https://img.shields.io/github/v/release/manuelarte/go-template)
+[![CI](https://github.com/manuelarte/go-web-layout/actions/workflows/ci.yml/badge.svg)](https://github.com/manuelarte/go-web-layout/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/manuelarte/go-web-layout)](https://goreportcard.com/report/github.com/manuelarte/go-web-layout)
 
 A production-ready template for Go web applications featuring modern tooling and best practices.
 
