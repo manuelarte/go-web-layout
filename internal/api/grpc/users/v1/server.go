@@ -26,7 +26,7 @@ func NewServer(userService users.Service) Server {
 }
 
 func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*CreateUserResponse, error) {
-	user, err := s.userService.Create(ctx, users.UserInput{
+	user, err := s.userService.Create(ctx, users.NewUser{
 		Username: request.GetUsername(),
 		Password: request.GetPassword(),
 	})

@@ -47,6 +47,7 @@ lint:
 
 tools:: ## install tools needed to build KachING
 	@go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	@go install go.uber.org/mock/mockgen@latest
 	@go install github.com/bufbuild/buf/cmd/buf@v1.56.0
 
 .PHONY: tools

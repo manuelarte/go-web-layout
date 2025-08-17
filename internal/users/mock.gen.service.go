@@ -42,7 +42,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockService) Create(arg0 context.Context, arg1 UserInput) (User, error) {
+func (m *MockService) Create(arg0 context.Context, arg1 NewUser) (User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(User)

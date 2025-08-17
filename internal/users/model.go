@@ -14,7 +14,7 @@ type User struct {
 	Username  string
 }
 
-type UserInput struct {
+type NewUser struct {
 	Username string
 	Password string
 }

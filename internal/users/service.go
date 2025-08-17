@@ -16,7 +16,7 @@ var _ Service = new(service)
 //go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
 	Service interface {
-		Create(context.Context, UserInput) (User, error)
+		Create(context.Context, NewUser) (User, error)
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
@@ -29,7 +29,7 @@ func NewService(r Repository) Service {
 	return service{repository: r}
 }
 
-func (s service) Create(ctx context.Context, user UserInput) (User, error) {
+func (s service) Create(ctx context.Context, user NewUser) (User, error) {
 	_, span := tracing.GetOrNewTracer(ctx).Start(
 		ctx,
 		"Service.Create",

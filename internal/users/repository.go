@@ -22,7 +22,7 @@ var _ Repository = new(repository)
 
 type (
 	Repository interface {
-		Create(context.Context, UserInput) (User, error)
+		Create(context.Context, NewUser) (User, error)
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
@@ -39,7 +39,7 @@ func NewRepository(db *sql.DB) Repository {
 	}
 }
 
-func (r repository) Create(ctx context.Context, user UserInput) (User, error) {
+func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
 	_, span := tracing.GetOrNewTracer(ctx).Start(
 		ctx,
 		"Service.Create",
