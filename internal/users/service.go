@@ -13,8 +13,10 @@ import (
 
 var _ Service = new(service)
 
+//go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
 	Service interface {
+		Create(context.Context, UserInput) (User, error)
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
@@ -25,6 +27,21 @@ type (
 
 func NewService(r Repository) Service {
 	return service{repository: r}
+}
+
+func (s service) Create(ctx context.Context, user UserInput) (User, error) {
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Service.Create",
+	)
+	defer span.End()
+
+	createdUser, err := s.repository.Create(ctx, user)
+	if err != nil {
+		return User{}, fmt.Errorf("error creating user: %w", err)
+	}
+
+	return createdUser, nil
 }
 
 func (s service) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {

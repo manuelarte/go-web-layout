@@ -20,6 +20,34 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+    id, username, password
+) VALUES (
+  ?, ?, ?
+)
+RETURNING id, created_at, updated_at, username, password
+`
+
+type CreateUserParams struct {
+	ID       interface{}
+	Username string
+	Password string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.ID, arg.Username, arg.Password)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Username,
+		&i.Password,
+	)
+	return i, err
+}
+
 const getUsers = `-- name: GetUsers :many
 SELECT id, created_at, updated_at, username, password FROM users LIMIT ? OFFSET ?
 `

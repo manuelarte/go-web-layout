@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -17,7 +16,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	"google.golang.org/grpc"
+	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
+	"google.golang.org/grpc/stats/opentelemetry"
 
+	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
@@ -33,6 +36,7 @@ func main() {
 	}
 }
 
+//nolint:funlen // refactor later
 func run() error {
 	ctx := context.Background()
 
@@ -69,7 +73,9 @@ func run() error {
 	}()
 	// set global tracer provider & text propagators
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+	textMapPropagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+	otel.SetTextMapPropagator(textMapPropagator)
 	// initialize tracer
 	tracer := otel.Tracer("go-web-layout")
 	// initialize meter provider & set global meter provider
@@ -99,6 +105,8 @@ func run() error {
 	)
 	createRestAPI(r, userService)
 
+	srvErr := make(chan error, 1)
+
 	srv := &http.Server{
 		Addr:              cfg.HTTPServeAddress,
 		Handler:           r,
@@ -108,11 +116,57 @@ func run() error {
 		},
 	}
 
-	log.Printf("Starting server on port %s", srv.Addr)
+	log.Printf("Starting Web server on port %s", srv.Addr)
 
-	err = srv.ListenAndServe()
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("failed to start server: %w", err)
+	go func() {
+		srvErr <- srv.ListenAndServe()
+	}()
+
+	listenConfig := net.ListenConfig{}
+
+	lis, err := listenConfig.Listen(ctx, "tcp", cfg.GRPCServeAddress)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %w", err)
+	}
+
+	so := opentelemetry.ServerOption(opentelemetry.Options{
+		MetricsOptions: opentelemetry.MetricsOptions{
+			MeterProvider: mp,
+			// These are example experimental gRPC metrics, which are disabled
+			// by default and must be explicitly enabled. For the full,
+			// up-to-date list of metrics, see:
+			// https://grpc.io/docs/guides/opentelemetry-metrics/#instruments
+			Metrics: opentelemetry.DefaultMetrics().Add(
+				"grpc.lb.pick_first.connection_attempts_succeeded",
+				"grpc.lb.pick_first.connection_attempts_failed",
+			),
+		},
+		TraceOptions: oteltracing.TraceOptions{TracerProvider: tp, TextMapPropagator: textMapPropagator},
+	},
+	)
+
+	s := grpc.NewServer(so)
+	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userService))
+	log.Printf("Starting gRPC server on port %s", lis.Addr())
+
+	go func() {
+		srvErr <- s.Serve(lis)
+	}()
+
+	// Wait for interruption.
+	select {
+	case err = <-srvErr:
+		return fmt.Errorf("server error: %w", err)
+	case <-ctx.Done():
+		// Wait for first CTRL+C.
+		// Stop receiving signal notifications as soon as possible.
+	}
+
+	s.GracefulStop()
+
+	errHTTP := srv.Shutdown(context.Background())
+	if errHTTP != nil {
+		return fmt.Errorf("error shutting down http server: %w", errHTTP)
 	}
 
 	return nil

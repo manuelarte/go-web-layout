@@ -11,6 +11,7 @@ import (
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
@@ -21,6 +22,7 @@ var _ Repository = new(repository)
 
 type (
 	Repository interface {
+		Create(context.Context, UserInput) (User, error)
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 
@@ -35,6 +37,30 @@ func NewRepository(db *sql.DB) Repository {
 		db:      db,
 		queries: sqlc.New(db),
 	}
+}
+
+func (r repository) Create(ctx context.Context, user UserInput) (User, error) {
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Service.Create",
+	)
+	defer span.End()
+
+	hashedPassword, err := hashPassword(user.Password)
+	if err != nil {
+		return User{}, fmt.Errorf("error hashing password: %w", err)
+	}
+
+	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
+		ID:       uuid.New().String(),
+		Username: user.Username,
+		Password: hashedPassword,
+	})
+	if err != nil {
+		return User{}, fmt.Errorf("error creating user: %w", err)
+	}
+
+	return transformModel(created), nil
 }
 
 func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
@@ -96,4 +122,10 @@ func transformModel(user sqlc.User) User {
 		UpdatedAt: updatedAt,
 		Username:  user.Username,
 	}
+}
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+
+	return string(bytes), err
 }

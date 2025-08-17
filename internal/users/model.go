@@ -13,3 +13,8 @@ type User struct {
 	UpdatedAt time.Time
 	Username  string
 }
+
+type UserInput struct {
+	Username string
+	Password string
+}
