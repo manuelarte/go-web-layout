@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	ErrPageMustBeGreateOrEqualThanZero = errors.New("page must be greater or equal than 0")
-	ErrSizeMustBeGreateOrEqualThanZero = errors.New("size must be greater or equal than 0")
+	ErrPageMustBeGreaterOrEqualThanZero = errors.New("page must be greater or equal than 0")
+	ErrSizeMustBeGreaterOrEqualThanZero = errors.New("size must be greater or equal than 0")
 )
 
 type (
@@ -28,11 +28,11 @@ type (
 
 func NewPageRequest(page, size int) (PageRequest, error) {
 	if page < 0 {
-		return PageRequest{}, ErrPageMustBeGreateOrEqualThanZero
+		return PageRequest{}, ErrPageMustBeGreaterOrEqualThanZero
 	}
 
 	if size < 0 {
-		return PageRequest{}, ErrSizeMustBeGreateOrEqualThanZero
+		return PageRequest{}, ErrSizeMustBeGreaterOrEqualThanZero
 	}
 
 	return PageRequest{

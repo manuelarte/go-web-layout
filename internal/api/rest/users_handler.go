@@ -28,11 +28,11 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 
 	pr, err := pagination.NewPageRequest(page, size)
 	if err != nil {
-		if errors.Is(err, pagination.ErrPageMustBeGreateOrEqualThanZero) {
+		if errors.Is(err, pagination.ErrPageMustBeGreaterOrEqualThanZero) {
 			return nil, ValidationError{map[string][]error{"page": {err}}}
 		}
 
-		if errors.Is(err, pagination.ErrSizeMustBeGreateOrEqualThanZero) {
+		if errors.Is(err, pagination.ErrSizeMustBeGreaterOrEqualThanZero) {
 			return nil, ValidationError{map[string][]error{"size": {err}}}
 		}
 
