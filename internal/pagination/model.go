@@ -5,6 +5,11 @@ import (
 	"math"
 )
 
+var (
+	ErrPageMustBeGreateOrEqualThanZero = errors.New("page must be greater or equal than 0")
+	ErrSizeMustBeGreateOrEqualThanZero = errors.New("size must be greater or equal than 0")
+)
+
 type (
 
 	// PageRequest represents a page request.
@@ -23,11 +28,11 @@ type (
 
 func NewPageRequest(page, size int) (PageRequest, error) {
 	if page < 0 {
-		return PageRequest{}, errors.New("page must be greater or equal than 0")
+		return PageRequest{}, ErrPageMustBeGreateOrEqualThanZero
 	}
 
 	if size < 0 {
-		return PageRequest{}, errors.New("size must be greater or equal than 0")
+		return PageRequest{}, ErrSizeMustBeGreateOrEqualThanZero
 	}
 
 	return PageRequest{

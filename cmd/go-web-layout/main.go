@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -176,6 +178,27 @@ func createRestAPI(r chi.Router, userService users.Service) {
 	api := rest.API{
 		UsersHandler: rest.NewUsersHandler(userService),
 	}
-	ssi := rest.NewStrictHandler(api, nil)
+	ssi := rest.NewStrictHandlerWithOptions(api, nil, rest.StrictHTTPServerOptions{
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			var validationErr rest.ValidationError
+			if errors.As(err, &validationErr) {
+				w.WriteHeader(http.StatusBadRequest)
+				resp := func() rest.ValidationError {
+					var target rest.ValidationError
+					_ = errors.As(err, &target)
+
+					return target
+				}().ErrorResponse()
+				bytes, errMarshal := json.Marshal(resp)
+				if errMarshal != nil {
+					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write(bytes)
+			}
+		},
+	})
 	rest.HandlerFromMux(ssi, r)
 }

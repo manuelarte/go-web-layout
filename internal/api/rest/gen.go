@@ -22,6 +22,16 @@ const (
 	UP   HealthStatus = "UP"
 )
 
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Code The resulting http code
+	Code    int         `json:"code"`
+	Details interface{} `json:"details"`
+
+	// Message Description of the error occurred
+	Message string `json:"message"`
+}
+
 // Health Health checks about the status of the app
 type Health struct {
 	Components map[string]HealthComponent `json:"components"`
@@ -397,6 +407,15 @@ type GetUsers200JSONResponse PageUsers
 func (response GetUsers200JSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUsers400JSONResponse ErrorResponse
+
+func (response GetUsers400JSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/manuelarte/ptrutils"
@@ -27,6 +28,14 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 
 	pr, err := pagination.NewPageRequest(page, size)
 	if err != nil {
+		if errors.Is(err, pagination.ErrPageMustBeGreateOrEqualThanZero) {
+			return nil, ValidationError{map[string][]error{"page": {err}}}
+		}
+
+		if errors.Is(err, pagination.ErrSizeMustBeGreateOrEqualThanZero) {
+			return nil, ValidationError{map[string][]error{"size": {err}}}
+		}
+
 		return nil, fmt.Errorf("error creating page request: %w", err)
 	}
 
