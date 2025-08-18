@@ -15,8 +15,11 @@ var _ Service = new(service)
 
 //go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
+	// Service interface with the user's service methods.
 	Service interface {
+		// Create creates a new user.
 		Create(context.Context, NewUser) (User, error)
+		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 

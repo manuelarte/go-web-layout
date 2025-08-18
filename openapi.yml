@@ -189,10 +189,10 @@ components:
     PageUsers:
       type: object
       required:
-        - data
+        - content
         - page
       properties:
-        data:
+        content:
           type: array
           items:
             $ref: '#/components/schemas/User'

@@ -1,3 +1,4 @@
+// Package pagination provides pagination utilities.
 package pagination
 
 import (
@@ -20,7 +21,7 @@ type (
 
 	// Page output of a paginated query.
 	Page[T any] struct {
-		data          []T
+		content       []T
 		pageRequest   PageRequest
 		totalElements int64
 	}
@@ -62,20 +63,20 @@ func (pr PageRequest) Offset() int {
 	return pr.page * pr.size
 }
 
-func NewPage[T any](data []T, pr PageRequest, totalElements int64) (Page[T], error) {
+func NewPage[T any](content []T, pr PageRequest, totalElements int64) (Page[T], error) {
 	if totalElements < 0 {
 		return Page[T]{}, errors.New("total elements must be greater or equal than 0")
 	}
 
 	return Page[T]{
-		data:          data,
+		content:       content,
 		pageRequest:   pr,
 		totalElements: totalElements,
 	}, nil
 }
 
-func MustPage[T any](data []T, pr PageRequest, totalElements int64) Page[T] {
-	page, err := NewPage(data, pr, totalElements)
+func MustPage[T any](content []T, pr PageRequest, totalElements int64) Page[T] {
+	page, err := NewPage(content, pr, totalElements)
 	if err != nil {
 		panic(err)
 	}
@@ -83,8 +84,8 @@ func MustPage[T any](data []T, pr PageRequest, totalElements int64) Page[T] {
 	return page
 }
 
-func (p Page[T]) Data() []T {
-	return p.data
+func (p Page[T]) Content() []T {
+	return p.content
 }
 
 func (p Page[T]) Size() int {

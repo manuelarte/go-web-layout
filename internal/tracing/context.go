@@ -1,4 +1,4 @@
 package tracing
 
-// Context context value to be passed through the stack.
+// Context tracing value to be passed through the stack trace through [context.Context].
 type Context struct{}

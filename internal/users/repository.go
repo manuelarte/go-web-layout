@@ -21,8 +21,11 @@ import (
 var _ Repository = new(repository)
 
 type (
+	// Repository interface with the user's repository methods.
 	Repository interface {
+		// Create creates a new user.
 		Create(context.Context, NewUser) (User, error)
+		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 	}
 

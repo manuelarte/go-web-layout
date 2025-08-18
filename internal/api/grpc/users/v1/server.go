@@ -1,3 +1,4 @@
+// Package usersv1 contains the gRPC server implementation for the users service.
 package usersv1
 
 import (
@@ -25,6 +26,7 @@ func NewServer(userService users.Service) Server {
 	}
 }
 
+// CreateUser creates a new user.
 func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*CreateUserResponse, error) {
 	user, err := s.userService.Create(ctx, users.NewUser{
 		Username: request.GetUsername(),
@@ -41,6 +43,7 @@ func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*Cr
 	}, nil
 }
 
+// DeleteUser deletes a user.
 func (s Server) DeleteUser(_ context.Context, _ *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
