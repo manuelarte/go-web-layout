@@ -14,6 +14,7 @@ type User struct {
 	Username  string
 }
 
+// NewUser model to represent a new user.
 type NewUser struct {
 	Username string
 	Password string

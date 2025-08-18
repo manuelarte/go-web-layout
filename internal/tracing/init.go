@@ -1,3 +1,4 @@
+// Package tracing provides tracing functionality.
 package tracing
 
 import (
