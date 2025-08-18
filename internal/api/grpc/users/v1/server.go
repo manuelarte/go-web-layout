@@ -1,3 +1,4 @@
+// Package usersv1 contains the gRPC server implementation for the users service.
 package usersv1
 
 import (

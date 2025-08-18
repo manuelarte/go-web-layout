@@ -1,3 +1,4 @@
+// Package info provides build information to be used in the actuators/info endpoint.
 package info
 
 //nolint:gochecknoglobals // We want to be able to override these values with ldflags.

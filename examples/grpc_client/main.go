@@ -1,3 +1,4 @@
+// Package main is a gRPC client example to test the gRPC server.
 package main
 
 import (

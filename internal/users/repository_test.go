@@ -41,7 +41,7 @@ func TestRepository_GetAll_Successful(t *testing.T) {
 
 			// Assert
 			require.NoError(t, err)
-			assert.Subset(t, actual.Data(), test.expected(test.migrate, test.pageRequest).Data())
+			assert.Subset(t, actual.Content(), test.expected(test.migrate, test.pageRequest).Content())
 		})
 	}
 }

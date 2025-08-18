@@ -101,8 +101,8 @@ type Page struct {
 
 // PageUsers defines model for PageUsers.
 type PageUsers struct {
-	Data []User `json:"data"`
-	Page Page   `json:"page"`
+	Content []User `json:"content"`
+	Page    Page   `json:"page"`
 }
 
 // User defines model for User.

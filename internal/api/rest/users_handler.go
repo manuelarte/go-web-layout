@@ -45,7 +45,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}
 
 	return GetUsers200JSONResponse{
-		Data: transformUserDaoToDto(pageUsers.Data()),
+		Content: transformUserDaoToDto(pageUsers.Content()),
 		Page: Page{
 			Number:        page,
 			Size:          size,

@@ -1,3 +1,4 @@
+// Package rest contains REST API implementation.
 package rest
 
 var _ StrictServerInterface = new(API)
