@@ -1,5 +1,6 @@
 default: help
 
+APP_VERSION := "LOCAL"
 BRANCH := $(shell git branch --show)
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%I:%M:%S%p')
 COMMIT_ID := $(shell git rev-list -1 HEAD)
@@ -26,7 +27,8 @@ build: ## Build
 	go build -ldflags=" \
 	-X github.com/manuelarte/go-web-layout/internal/info.Branch=$(BRANCH) \
 	-X github.com/manuelarte/go-web-layout/internal/info.BuildTime=$(BUILD_TIME) \
-	-X github.com/manuelarte/go-web-layout/internal/info.CommitID=$(COMMIT_ID)" \
+	-X github.com/manuelarte/go-web-layout/internal/info.CommitID=$(COMMIT_ID) \
+	-X github.com/manuelarte/go-web-layout/internal/info.Version=$(APP_VERSION)" \
 	./cmd/go-web-layout/.
 .PHONY: build
 

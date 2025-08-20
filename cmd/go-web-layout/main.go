@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
 	"net/http"
 	"time"
@@ -22,12 +23,12 @@ import (
 	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
 	"google.golang.org/grpc/stats/opentelemetry"
 
+	resources "github.com/manuelarte/go-web-layout"
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
-	"github.com/manuelarte/go-web-layout/resources"
 )
 
 //go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../openapi.yml
@@ -35,7 +36,7 @@ import (
 func main() {
 	err := run()
 	if err != nil {
-		log.Panic().Err(err).Msg("Failed to run server")
+		log.Fatal().Err(err).Msg("Failed to run server")
 	}
 }
 
@@ -203,8 +204,8 @@ func createRestAPI(r chi.Router, userService users.Service) {
 	})
 	rest.HandlerFromMux(ssi, r)
 
-	fs := http.FileServer(http.Dir("./static/swagger-ui"))
-	r.Handle("/swagger/*", http.StripPrefix("/swagger/", fs))
+	sfs, _ := fs.Sub(fs.FS(resources.SwaggerUI), "static/swagger-ui")
+	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
 
 	r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(resources.OpenAPI)
