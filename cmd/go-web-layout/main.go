@@ -14,6 +14,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"github.com/rs/zerolog/log"
@@ -204,6 +205,10 @@ func createRestAPI(r chi.Router, userService users.Service) {
 	})
 	rest.HandlerFromMux(ssi, r)
 
+	// Prometheus
+	r.Handle("/metrics", promhttp.Handler())
+
+	// Swagger
 	sfs, _ := fs.Sub(fs.FS(resources.SwaggerUI), "static/swagger-ui")
 	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
 
