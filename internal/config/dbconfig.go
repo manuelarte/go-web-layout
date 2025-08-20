@@ -9,7 +9,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 
-	"github.com/manuelarte/go-web-layout/resources"
+	resources "github.com/manuelarte/go-web-layout"
 )
 
 func Migrate() (*sql.DB, error) {
@@ -23,7 +23,7 @@ func Migrate() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to instantiate sqlit3 driver: %w", err)
 	}
 
-	sd, fsErr := iofs.New(resources.MigrationsFolder, "migrations")
+	sd, fsErr := iofs.New(resources.MigrationsFolder, "resources/migrations")
 	if fsErr != nil {
 		return nil, fmt.Errorf("unable to instantiate migration source from filesystem: %w", fsErr)
 	}
