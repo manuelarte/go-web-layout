@@ -27,6 +27,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
+	"github.com/manuelarte/go-web-layout/resources"
 )
 
 //go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../openapi.yml
@@ -201,4 +202,11 @@ func createRestAPI(r chi.Router, userService users.Service) {
 		},
 	})
 	rest.HandlerFromMux(ssi, r)
+
+	fs := http.FileServer(http.Dir("./static/swagger-ui"))
+	r.Handle("/swagger/*", http.StripPrefix("/swagger/", fs))
+
+	r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write(resources.OpenAPI)
+	})
 }
