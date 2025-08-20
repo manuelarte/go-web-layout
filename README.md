@@ -28,7 +28,8 @@ API specification in [openapi.yml](resources/openapi.yml) and code automatically
 
 #### gRPC API
 
-The [gRPC](https://grpc.io/) API is defined in the folder [proto/](proto), and the code is generated using [buf](https://buf.build/). in the folder [./internal/api/grpc](./internal/api/grpc).
+The [gRPC](https://grpc.io/) API is defined in the folder [proto/](proto). 
+The code is generated using [buf](https://buf.build/). in the folder [./internal/api/grpc](./internal/api/grpc).
 
 ## 🛠️ Getting Started
 
