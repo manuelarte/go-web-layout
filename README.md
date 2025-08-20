@@ -11,11 +11,11 @@ A production-ready template for Go web applications featuring modern tooling and
 
 #### Migrations
 
-Managed via [go-embed](https://pkg.go.dev/embed) migration files in [./resources/migrations](./resources/migrations) using [golang-migrate](https://github.com/golang-migrate/migrate).
+The database migration is handled with [golang-migrate](https://github.com/golang-migrate/migrate). The migration files are embedded using [go-embed](https://pkg.go.dev/embed).
 
 #### Type-safe SQL
 
-All queries generated at compile time with [sqlc](https://sqlc.dev/).
+All queries are generated at compile time with [sqlc](https://sqlc.dev/).
 
 ### API Layers
 
@@ -23,9 +23,12 @@ All queries generated at compile time with [sqlc](https://sqlc.dev/).
 
 API specification in [openapi.yml](resources/openapi.yml) and code automatically generated with [oapi-codegen](https://github.com/deepmap/oapi-codegen).
 
+> [!NOTE]
+> Swagger UI is available at [/swagger/index.html](http://localhost:3001/swagger/index.html).
+
 #### gRPC API
 
-The gRPC API is defined in the folder [proto/](proto), and the generated code with [buf](https://buf.build/) is in the folder [./internal/api/grpc](./internal/api/grpc).
+The [gRPC](https://grpc.io/) API is defined in the folder [proto/](proto), and the code is generated using [buf](https://buf.build/). in the folder [./internal/api/grpc](./internal/api/grpc).
 
 ## 🛠️ Getting Started
 
