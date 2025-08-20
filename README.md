@@ -9,11 +9,11 @@ A production-ready template for Go web applications featuring modern tooling and
 
 ### 🛢 Database Layer
 
-- **Migrations**: 
+- **Migrations**:
 
 The database migration is handled with [golang-migrate](https://github.com/golang-migrate/migrate). The migration files are embedded using [go-embed](https://pkg.go.dev/embed).
 
-- **Type-safe SQL**: 
+- **Type-safe SQL**:
 
 All queries are generated at compile time with [sqlc](https://sqlc.dev/).
 
