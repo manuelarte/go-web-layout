@@ -12,6 +12,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
 	github.com/manuelarte/ptrutils v1.0.1
 	github.com/oapi-codegen/runtime v1.1.2
+	github.com/prometheus/client_golang v1.23.0
 	github.com/riandyrn/otelchi v0.12.1
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.51.0
@@ -59,7 +60,6 @@ require (
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.23.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
