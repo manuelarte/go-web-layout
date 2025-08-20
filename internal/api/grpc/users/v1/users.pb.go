@@ -292,12 +292,11 @@ var File_users_v1_users_proto protoreflect.FileDescriptor
 
 const file_users_v1_users_proto_rawDesc = "" +
 	"\n" +
-	"\x14users/v1/users.proto\x12\busers.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"c\n" +
+	"\x14users/v1/users.proto\x12\busers.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"e\n" +
 	"\x11CreateUserRequest\x12&\n" +
 	"\busername\x18\x01 \x01(\tB\n" +
-	"\xbaH\a\xc8\x01\x01r\x02\x18 R\busername\x12&\n" +
-	"\bpassword\x18\x02 \x01(\tB\n" +
-	"\xbaH\a\xc8\x01\x01r\x02\x18@R\bpassword\"@\n" +
+	"\xbaH\a\xc8\x01\x01r\x02\x18 R\busername\x12(\n" +
+	"\bpassword\x18\x02 \x01(\tB\f\xbaH\t\xc8\x01\x01r\x04\x10\b\x18@R\bpassword\"@\n" +
 	"\x12CreateUserResponse\x12*\n" +
 	"\x04user\x18\x01 \x01(\v2\x0e.users.v1.UserB\x06\xbaH\x03\xc8\x01\x01R\x04user\"9\n" +
 	"\x11DeleteUserRequest\x12$\n" +
