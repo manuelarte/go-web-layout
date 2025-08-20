@@ -21,7 +21,7 @@ All queries generated at compile time with [sqlc](https://sqlc.dev/).
 
 #### REST API
 
-API specification in [openapi.yml](openapi.yml) and code automatically generated with [oapi-codegen](https://github.com/deepmap/oapi-codegen).
+API specification in [openapi.yml](resources/openapi.yml) and code automatically generated with [oapi-codegen](https://github.com/deepmap/oapi-codegen).
 
 #### gRPC API
 

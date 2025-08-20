@@ -5,3 +5,6 @@ import "embed"
 
 //go:embed migrations/*
 var MigrationsFolder embed.FS
+
+//go:embed openapi.yml
+var OpenAPI []byte

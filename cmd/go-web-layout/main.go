@@ -201,4 +201,10 @@ func createRestAPI(r chi.Router, userService users.Service) {
 		},
 	})
 	rest.HandlerFromMux(ssi, r)
+
+	// TODO(manuelarte): make it work with resources.OpenAPI
+	//static.SwaggerUI.
+	//
+	fs := http.FileServer(http.Dir("./static/swagger-ui"))
+	r.Handle("/swagger/*", http.StripPrefix("/swagger/", fs))
 }
