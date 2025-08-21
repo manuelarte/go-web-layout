@@ -25,6 +25,7 @@ API specification in [openapi.yml](resources/openapi.yml) and code automatically
 
 > [!NOTE]
 > Swagger UI is available at [/swagger/index.html](http://localhost:3001/swagger/index.html).
+> 
 > Prometheus metrics are available at [/metrics](http://localhost:3001/metrics)
 
 - **gRPC API**:
