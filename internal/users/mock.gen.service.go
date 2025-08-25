@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	pagination "github.com/manuelarte/go-web-layout/internal/pagination"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -69,4 +70,19 @@ func (m *MockService) GetAll(arg0 context.Context, arg1 pagination.PageRequest) 
 func (mr *MockServiceMockRecorder) GetAll(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockService)(nil).GetAll), arg0, arg1)
+}
+
+// GetByID mocks base method.
+func (m *MockService) GetByID(arg0 context.Context, arg1 uuid.UUID) (User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", arg0, arg1)
+	ret0, _ := ret[0].(User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockServiceMockRecorder) GetByID(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockService)(nil).GetByID), arg0, arg1)
 }

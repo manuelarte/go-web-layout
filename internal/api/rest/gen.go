@@ -22,6 +22,12 @@ const (
 	UP   HealthStatus = "UP"
 )
 
+// Defines values for Kind.
+const (
+	KindCollection Kind = "Collection"
+	KindUser       Kind = "User"
+)
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Code The resulting http code
@@ -84,6 +90,9 @@ type InfoGit struct {
 	CommitId string `json:"commitId"`
 }
 
+// Kind Kind of the response
+type Kind string
+
 // Page defines model for Page.
 type Page struct {
 	// Number Current page number
@@ -102,7 +111,13 @@ type Page struct {
 // PageUsers defines model for PageUsers.
 type PageUsers struct {
 	Content []User `json:"content"`
-	Page    Page   `json:"page"`
+
+	// Kind Kind of the response
+	Kind Kind `json:"kind"`
+	Page Page `json:"page"`
+
+	// Self URL to the users page
+	Self string `json:"self"`
 }
 
 // User defines model for User.
@@ -112,6 +127,12 @@ type User struct {
 
 	// Id Id of the user
 	Id openapi_types.UUID `json:"id"`
+
+	// Kind Kind of the response
+	Kind Kind `json:"kind"`
+
+	// Self URL to the user
+	Self string `json:"self"`
 
 	// UpdatedAt Last update date of the user
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -140,6 +161,9 @@ type ServerInterface interface {
 	// Users
 	// (GET /api/v1/users)
 	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
+	// Get User
+	// (GET /api/v1/users/{userId})
+	GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -161,6 +185,12 @@ func (_ Unimplemented) ActuatorsInfo(w http.ResponseWriter, r *http.Request) {
 // Users
 // (GET /api/v1/users)
 func (_ Unimplemented) GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get User
+// (GET /api/v1/users/{userId})
+func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -227,6 +257,31 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetUsers(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUser operation middleware
+func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "userId" -------------
+	var userId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", chi.URLParam(r, "userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUser(w, r, userId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -358,6 +413,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/users", wrapper.GetUsers)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/users/{userId}", wrapper.GetUser)
+	})
 
 	return r
 }
@@ -420,6 +478,32 @@ func (response GetUsers400JSONResponse) VisitGetUsersResponse(w http.ResponseWri
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetUserRequestObject struct {
+	UserId openapi_types.UUID `json:"userId"`
+}
+
+type GetUserResponseObject interface {
+	VisitGetUserResponse(w http.ResponseWriter) error
+}
+
+type GetUser200JSONResponse User
+
+func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUser400JSONResponse ErrorResponse
+
+func (response GetUser400JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Actuators
@@ -431,6 +515,9 @@ type StrictServerInterface interface {
 	// Users
 	// (GET /api/v1/users)
 	GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error)
+	// Get User
+	// (GET /api/v1/users/{userId})
+	GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -529,6 +616,32 @@ func (sh *strictHandler) GetUsers(w http.ResponseWriter, r *http.Request, params
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetUsersResponseObject); ok {
 		if err := validResponse.VisitGetUsersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUser operation middleware
+func (sh *strictHandler) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	var request GetUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUser(ctx, request.(GetUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserResponseObject); ok {
+		if err := validResponse.VisitGetUserResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

@@ -27,6 +27,8 @@ type (
 		Create(context.Context, NewUser) (User, error)
 		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
+		// GetByID gets a user by its ID.
+		GetByID(context.Context, uuid.UUID) (User, error)
 	}
 
 	repository struct {
@@ -111,6 +113,22 @@ func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 	})
 
 	return pagination.MustPage(users, pr, count), nil
+}
+
+func (r repository) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Repository.GetByID",
+		oteltrace.WithAttributes(attribute.String("id", id.String())),
+	)
+	defer span.End()
+
+	dao, err := r.queries.GetUserByID(ctx, id.String())
+	if err != nil {
+		return User{}, fmt.Errorf("error getting user by id: %w", err)
+	}
+
+	return transformModel(dao), nil
 }
 
 //nolint:errcheck // TODO check how to do it better.

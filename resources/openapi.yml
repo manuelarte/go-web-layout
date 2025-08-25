@@ -74,6 +74,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/users/{userId}:
+    get:
+      operationId: Get User
+      description: Get a user by id.
+      summary: Get User
+      tags:
+        - users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: User id
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
@@ -82,7 +110,6 @@ components:
       required:
         - code
         - message
-        - details
       properties:
         code:
           type: integer
@@ -165,6 +192,12 @@ components:
           format: url
           type: string
           description: The pipeline url that built this version
+    Kind:
+      type: string
+      description: Kind of the response
+      enum:
+        - Collection
+        - User
     Page:
       type: object
       required:
@@ -189,9 +222,17 @@ components:
     PageUsers:
       type: object
       required:
+        - self
+        - kind
         - content
         - page
       properties:
+        self:
+          type: string
+          format: url
+          description: URL to the users page
+        kind:
+          $ref: '#/components/schemas/Kind'
         content:
           type: array
           items:
@@ -201,11 +242,19 @@ components:
     User:
       type: object
       required:
+        - self
+        - kind
         - id
         - createdAt
         - updatedAt
         - username
       properties:
+        self:
+          type: string
+          format: url
+          description: URL to the user
+        kind:
+          $ref: "#/components/schemas/Kind"
         id:
           type: string
           format: uuid

@@ -32,7 +32,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
-//go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../openapi.yml
+//go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../resources/openapi.yml
 //go:generate sqlc generate -f ../../sqlc.yml
 func main() {
 	err := run()
@@ -200,6 +200,8 @@ func createRestAPI(r chi.Router, userService users.Service) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write(bytes)
+
+				return
 			}
 		},
 	})

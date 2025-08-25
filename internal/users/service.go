@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
@@ -21,6 +22,8 @@ type (
 		Create(context.Context, NewUser) (User, error)
 		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
+		// GetByID gets a user by its ID.
+		GetByID(context.Context, uuid.UUID) (User, error)
 	}
 
 	service struct {
@@ -61,4 +64,20 @@ func (s service) GetAll(ctx context.Context, pr pagination.PageRequest) (paginat
 	}
 
 	return pageUsers, nil
+}
+
+func (s service) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
+	_, span := tracing.GetOrNewTracer(ctx).Start(
+		ctx,
+		"Service.GetByID",
+		oteltrace.WithAttributes(attribute.String("id", id.String())),
+	)
+	defer span.End()
+
+	user, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return User{}, fmt.Errorf("error getting user by id: %w", err)
+	}
+
+	return user, nil
 }
