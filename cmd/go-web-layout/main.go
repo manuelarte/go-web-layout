@@ -3,10 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/fs"
 	"net"
 	"net/http"
 	"time"
@@ -14,7 +11,6 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"github.com/rs/zerolog/log"
@@ -24,7 +20,6 @@ import (
 	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
 	"google.golang.org/grpc/stats/opentelemetry"
 
-	resources "github.com/manuelarte/go-web-layout"
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
@@ -108,7 +103,7 @@ func run() error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	createRestAPI(r, userService)
+	rest.CreateRestAPI(r, userService)
 
 	srvErr := make(chan error, 1)
 
@@ -175,46 +170,4 @@ func run() error {
 	}
 
 	return nil
-}
-
-func createRestAPI(r chi.Router, userService users.Service) {
-	api := rest.API{
-		UsersHandler: rest.NewUsersHandler(userService),
-	}
-	ssi := rest.NewStrictHandlerWithOptions(api, nil, rest.StrictHTTPServerOptions{
-		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			var validationErr rest.ValidationError
-			if errors.As(err, &validationErr) {
-				w.WriteHeader(http.StatusBadRequest)
-				resp := func() rest.ValidationError {
-					var target rest.ValidationError
-					_ = errors.As(err, &target)
-
-					return target
-				}().ErrorResponse()
-				bytes, errMarshal := json.Marshal(resp)
-				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
-
-					return
-				}
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write(bytes)
-
-				return
-			}
-		},
-	})
-	rest.HandlerFromMux(ssi, r)
-
-	// Prometheus
-	r.Handle("/metrics", promhttp.Handler())
-
-	// Swagger
-	sfs, _ := fs.Sub(fs.FS(resources.SwaggerUI), "static/swagger-ui")
-	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
-
-	r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(resources.OpenAPI)
-	})
 }
