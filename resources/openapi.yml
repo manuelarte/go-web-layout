@@ -61,6 +61,7 @@ paths:
             type: integer
             minimum: 1
             default: 20
+            maximum: 50
       responses:
         "200":
           description: Successful response.

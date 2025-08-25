@@ -32,7 +32,7 @@ const (
 type ErrorResponse struct {
 	// Code The resulting http code
 	Code    int         `json:"code"`
-	Details interface{} `json:"details"`
+	Details interface{} `json:"details,omitempty"`
 
 	// Message Description of the error occurred
 	Message string `json:"message"`
