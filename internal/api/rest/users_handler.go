@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -20,6 +21,22 @@ func NewUsersHandler(service users.Service) UsersHandler {
 	return UsersHandler{
 		service: service,
 	}
+}
+
+func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error) {
+	user, err := h.service.GetByID(ctx, request.UserId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return GetUser400JSONResponse{
+				Code:    404,
+				Message: fmt.Sprintf("No user found with id: %s", request.UserId.String()),
+			}, nil
+		}
+
+		return nil, fmt.Errorf("error getting user: %w", err)
+	}
+
+	return GetUser200JSONResponse(transformUserDaoToDto(user)), nil
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
@@ -45,7 +62,9 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}
 
 	return GetUsers200JSONResponse{
-		Content: transformUserDaoToDto(pageUsers.Content()),
+		Self:    fmt.Sprintf("/api/v1/users?page=%d&size=%d", page, size),
+		Kind:    KindCollection,
+		Content: transformUserDaosToDtos(pageUsers.Content()),
 		Page: Page{
 			Number:        page,
 			Size:          size,
@@ -55,13 +74,19 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}, nil
 }
 
-func transformUserDaoToDto(daos []users.User) []User {
+func transformUserDaosToDtos(daos []users.User) []User {
 	return lo.Map(daos, func(dao users.User, _ int) User {
-		return User{
-			Id:        dao.ID,
-			CreatedAt: dao.CreatedAt,
-			UpdatedAt: dao.UpdatedAt,
-			Username:  dao.Username,
-		}
+		return transformUserDaoToDto(dao)
 	})
+}
+
+func transformUserDaoToDto(dao users.User) User {
+	return User{
+		Self:      fmt.Sprintf("/api/v1/users/%s", dao.ID),
+		Kind:      KindUser,
+		Id:        dao.ID,
+		CreatedAt: dao.CreatedAt,
+		UpdatedAt: dao.UpdatedAt,
+		Username:  dao.Username,
+	}
 }

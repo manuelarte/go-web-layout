@@ -1,3 +1,6 @@
+-- name: GetUserByID :one
+SELECT * FROM users WHERE ID = ?;
+
 -- name: GetUsers :many
 SELECT * FROM users LIMIT ? OFFSET ?;
 
