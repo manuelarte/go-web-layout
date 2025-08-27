@@ -7,15 +7,18 @@ info:
   title: Go-Web-Layout
   version: '0.0.1'
 
+servers:
+  - url: /
+    description: Local development server.
+
 paths:
   /actuators/info:
     get:
-      operationId: Actuators Info
+      operationId: actuatorsInfo
       description: Get info about the application.
       summary: Actuators
       tags:
         - actuators
-        - info
       responses:
         "200":
           description: Successful response.
@@ -25,12 +28,11 @@ paths:
                 $ref: '#/components/schemas/Info'
   /actuators/health:
     get:
-      operationId: Actuators Health
+      operationId: actuatorsHealth
       description: Get health information about the application.
       summary: Actuators
       tags:
         - actuators
-        - health
       responses:
         "200":
           description: Successful response.
@@ -40,7 +42,7 @@ paths:
                 $ref: '#/components/schemas/Health'
   /api/v1/users:
     get:
-      operationId: Get Users
+      operationId: getUsers
       description: Get all users.
       summary: Users
       tags:
@@ -77,7 +79,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/users/{userId}:
     get:
-      operationId: Get User
+      operationId: getUser
       description: Get a user by id.
       summary: Get User
       tags:
@@ -271,3 +273,9 @@ components:
         username:
           type: string
           description: Username of the user
+
+tags:
+  - name: actuators
+    description: Actuators endpoints
+  - name: users
+    description: Users endpoints
