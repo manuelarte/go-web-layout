@@ -49,7 +49,15 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.2
+          version: v2.4
+  spectral:
+    name: Run Spectral
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: stoplightio/spectral-action@latest
+        with:
+          file_glob: './resources/openapi.yml'
   hadolint:
     name: hadolint
     runs-on: ubuntu-latest
