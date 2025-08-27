@@ -1,6 +1,8 @@
 #!/bin/sh
 
-markdownlint-cli2 ./**/*.md
+markdownlint-cli2 --fix ./**/*.md
+# Stage any changes made by the linter
+git add -u
 codespell .
 yamllint .
 hadolint Dockerfile

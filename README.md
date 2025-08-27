@@ -5,7 +5,7 @@
 
 A production-ready template for Go web applications featuring modern tooling and best practices.
 
-## 🚀 Key Features
+## 🚀 Key Features 
 
 ### 🛢 Database Layer
 
