@@ -7,4 +7,3 @@ codespell .
 yamllint .
 hadolint Dockerfile
 go test ./...
-
