@@ -29,7 +29,7 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 	user, err := h.service.GetByID(ctx, request.UserId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return GetUser4XXJSONResponse{
+			return GetUser4XXApplicationProblemPlusJSONResponse{
 				StatusCode: http.StatusNotFound,
 				Body: ErrorResponse{
 					Code:    strconv.Itoa(http.StatusNotFound),

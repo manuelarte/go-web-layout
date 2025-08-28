@@ -32,7 +32,7 @@ paths:
         "4XX":
           description: Validation Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/Info'
         "500":
@@ -59,7 +59,7 @@ paths:
         "4XX":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/Health'
         "500":
@@ -105,7 +105,7 @@ paths:
         "4XX":
           description: Validation Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":
@@ -140,7 +140,7 @@ paths:
         "4XX":
           description: Validation Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "500":

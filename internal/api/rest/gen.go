@@ -436,13 +436,13 @@ func (response ActuatorsHealth200JSONResponse) VisitActuatorsHealthResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
-type ActuatorsHealth4XXJSONResponse struct {
+type ActuatorsHealth4XXApplicationProblemPlusJSONResponse struct {
 	Body       Health
 	StatusCode int
 }
 
-func (response ActuatorsHealth4XXJSONResponse) VisitActuatorsHealthResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response ActuatorsHealth4XXApplicationProblemPlusJSONResponse) VisitActuatorsHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
@@ -473,13 +473,13 @@ func (response ActuatorsInfo200JSONResponse) VisitActuatorsInfoResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
-type ActuatorsInfo4XXJSONResponse struct {
+type ActuatorsInfo4XXApplicationProblemPlusJSONResponse struct {
 	Body       Info
 	StatusCode int
 }
 
-func (response ActuatorsInfo4XXJSONResponse) VisitActuatorsInfoResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response ActuatorsInfo4XXApplicationProblemPlusJSONResponse) VisitActuatorsInfoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
@@ -511,13 +511,13 @@ func (response GetUsers200JSONResponse) VisitGetUsersResponse(w http.ResponseWri
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetUsers4XXJSONResponse struct {
+type GetUsers4XXApplicationProblemPlusJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response GetUsers4XXJSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response GetUsers4XXApplicationProblemPlusJSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
@@ -549,13 +549,13 @@ func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWrite
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetUser4XXJSONResponse struct {
+type GetUser4XXApplicationProblemPlusJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response GetUser4XXJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response GetUser4XXApplicationProblemPlusJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)

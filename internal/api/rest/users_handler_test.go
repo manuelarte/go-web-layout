@@ -68,7 +68,8 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			// Assert
-			require.Equal(t, http.StatusBadRequest, w.Code)
+			expectedCode, _ := strconv.Atoi(test.expected.Code)
+			assert.Equal(t, expectedCode, w.Code)
 
 			expectedJSON, err := json.Marshal(test.expected)
 			require.NoError(t, err)
