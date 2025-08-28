@@ -2,7 +2,7 @@ default: help
 
 APP_VERSION := "LOCAL"
 BRANCH := $(shell git branch --show)
-BUILD_TIME := $(shell date -u '+%Y-%m-%d_%I:%M:%S%p')
+BUILD_TIME := $(shell date --rfc-3339=seconds)
 COMMIT_ID := $(shell git rev-list -1 HEAD)
 
 help:
@@ -13,11 +13,11 @@ help:
 dr: docker-run
 docker-run:
 	docker build \
-		--build-arg="BRANCH=$(BRANCH)" \
-		--build-arg="BUILD_TIME=$(BUILD_TIME)" \
-		--build-arg="COMMIT_ID=$(COMMIT_ID)" \
+		--build-arg=BRANCH="$(BRANCH)" \
+		--build-arg=BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg=COMMIT_ID="$(COMMIT_ID)" \
 		--tag github.com/manuelarte/go-web-layout .
-	docker run --publish 3001:3001 github.com/manuelarte/go-web-layout
+	docker run --publish 3001:3001 --publish 3002:3002 github.com/manuelarte/go-web-layout
 
 tidy: ## Run go mod tidy in all directories
 	go mod tidy
@@ -25,8 +25,8 @@ tidy: ## Run go mod tidy in all directories
 
 build: ## Build
 	go build -ldflags=" \
-	-X github.com/manuelarte/go-web-layout/internal/info.Branch=$(BRANCH) \
-	-X github.com/manuelarte/go-web-layout/internal/info.BuildTime=$(BUILD_TIME) \
+	-X 'github.com/manuelarte/go-web-layout/internal/info.Branch=$(BRANCH)' \
+	-X 'github.com/manuelarte/go-web-layout/internal/info.BuildTime=$(BUILD_TIME)' \
 	-X github.com/manuelarte/go-web-layout/internal/info.CommitID=$(COMMIT_ID) \
 	-X github.com/manuelarte/go-web-layout/internal/info.Version=$(APP_VERSION)" \
 	./cmd/go-web-layout/.

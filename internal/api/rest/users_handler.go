@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
 
 	"github.com/manuelarte/ptrutils"
 	"github.com/samber/lo"
@@ -27,9 +29,12 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 	user, err := h.service.GetByID(ctx, request.UserId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return GetUser400JSONResponse{
-				Code:    404,
-				Message: fmt.Sprintf("No user found with id: %s", request.UserId.String()),
+			return GetUser4XXJSONResponse{
+				StatusCode: http.StatusNotFound,
+				Body: ErrorResponse{
+					Code:    strconv.Itoa(http.StatusNotFound),
+					Message: fmt.Sprintf("No user found with id: %s", request.UserId.String()),
+				},
 			}, nil
 		}
 
@@ -43,7 +48,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
-	pr, err := pagination.NewPageRequest(page, size)
+	pr, err := pagination.NewPageRequest(int(page), int(size))
 	if err != nil {
 		if errors.Is(err, pagination.ErrPageMustBeGreaterOrEqualThanZero) {
 			return nil, ValidationError{map[string][]error{"page": {err}}}
@@ -69,7 +74,8 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 			Number:        page,
 			Size:          size,
 			TotalElements: pageUsers.TotalElements(),
-			TotalPages:    pageUsers.TotalPages(),
+			//gosec:disable G115 -- Not expecting to overflow
+			TotalPages: int32(pageUsers.TotalPages()),
 		},
 	}, nil
 }

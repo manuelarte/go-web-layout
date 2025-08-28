@@ -30,8 +30,8 @@ const (
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
-	// Code The resulting http code
-	Code    int         `json:"code"`
+	// Code The error code
+	Code    string      `json:"code"`
 	Details interface{} `json:"details,omitempty"`
 
 	// Message Description of the error occurred
@@ -81,7 +81,7 @@ type InfoGit struct {
 	Branch string `json:"branch"`
 
 	// BuildTime Build time of the version deployed
-	BuildTime string `json:"buildTime"`
+	BuildTime time.Time `json:"buildTime"`
 
 	// BuildUrl The pipeline url that built this version
 	BuildUrl string `json:"buildUrl"`
@@ -96,16 +96,16 @@ type Kind string
 // Page defines model for Page.
 type Page struct {
 	// Number Current page number
-	Number int `json:"number"`
+	Number int32 `json:"number"`
 
 	// Size Size of the page
-	Size int `json:"size"`
+	Size int32 `json:"size"`
 
 	// TotalElements Total number of elements in the page
 	TotalElements int64 `json:"totalElements"`
 
 	// TotalPages Total number of pages
-	TotalPages int `json:"totalPages"`
+	TotalPages int32 `json:"totalPages"`
 }
 
 // PageUsers defines model for PageUsers.
@@ -144,24 +144,24 @@ type User struct {
 // GetUsersParams defines parameters for GetUsers.
 type GetUsersParams struct {
 	// Page Page number
-	Page *int `form:"page,omitempty" json:"page,omitempty"`
+	Page *int32 `form:"page,omitempty" json:"page,omitempty"`
 
 	// Size Page size
-	Size *int `form:"size,omitempty" json:"size,omitempty"`
+	Size *int32 `form:"size,omitempty" json:"size,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Actuators
+	// Actuators Health Endpoint
 	// (GET /actuators/health)
 	ActuatorsHealth(w http.ResponseWriter, r *http.Request)
-	// Actuators
+	// Actuators Info Endpoint
 	// (GET /actuators/info)
 	ActuatorsInfo(w http.ResponseWriter, r *http.Request)
-	// Users
+	// Get Users Endpoint
 	// (GET /api/v1/users)
 	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
-	// Get User
+	// Get User By ID Endpoint
 	// (GET /api/v1/users/{userId})
 	GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
 }
@@ -170,25 +170,25 @@ type ServerInterface interface {
 
 type Unimplemented struct{}
 
-// Actuators
+// Actuators Health Endpoint
 // (GET /actuators/health)
 func (_ Unimplemented) ActuatorsHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Actuators
+// Actuators Info Endpoint
 // (GET /actuators/info)
 func (_ Unimplemented) ActuatorsInfo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Users
+// Get Users Endpoint
 // (GET /api/v1/users)
 func (_ Unimplemented) GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Get User
+// Get User By ID Endpoint
 // (GET /api/v1/users/{userId})
 func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -436,6 +436,27 @@ func (response ActuatorsHealth200JSONResponse) VisitActuatorsHealthResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type ActuatorsHealth4XXJSONResponse struct {
+	Body       Health
+	StatusCode int
+}
+
+func (response ActuatorsHealth4XXJSONResponse) VisitActuatorsHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type ActuatorsHealth500JSONResponse ErrorResponse
+
+func (response ActuatorsHealth500JSONResponse) VisitActuatorsHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type ActuatorsInfoRequestObject struct {
 }
 
@@ -448,6 +469,27 @@ type ActuatorsInfo200JSONResponse Info
 func (response ActuatorsInfo200JSONResponse) VisitActuatorsInfoResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type ActuatorsInfo4XXJSONResponse struct {
+	Body       Info
+	StatusCode int
+}
+
+func (response ActuatorsInfo4XXJSONResponse) VisitActuatorsInfoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type ActuatorsInfo500JSONResponse ErrorResponse
+
+func (response ActuatorsInfo500JSONResponse) VisitActuatorsInfoResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -469,11 +511,23 @@ func (response GetUsers200JSONResponse) VisitGetUsersResponse(w http.ResponseWri
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetUsers400JSONResponse ErrorResponse
+type GetUsers4XXJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
 
-func (response GetUsers400JSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
+func (response GetUsers4XXJSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type GetUsers500JSONResponse ErrorResponse
+
+func (response GetUsers500JSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -495,27 +549,39 @@ func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWrite
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetUser400JSONResponse ErrorResponse
+type GetUser4XXJSONResponse struct {
+	Body       ErrorResponse
+	StatusCode int
+}
 
-func (response GetUser400JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+func (response GetUser4XXJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
+	w.WriteHeader(response.StatusCode)
+
+	return json.NewEncoder(w).Encode(response.Body)
+}
+
+type GetUser500JSONResponse ErrorResponse
+
+func (response GetUser500JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	// Actuators
+	// Actuators Health Endpoint
 	// (GET /actuators/health)
 	ActuatorsHealth(ctx context.Context, request ActuatorsHealthRequestObject) (ActuatorsHealthResponseObject, error)
-	// Actuators
+	// Actuators Info Endpoint
 	// (GET /actuators/info)
 	ActuatorsInfo(ctx context.Context, request ActuatorsInfoRequestObject) (ActuatorsInfoResponseObject, error)
-	// Users
+	// Get Users Endpoint
 	// (GET /api/v1/users)
 	GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error)
-	// Get User
+	// Get User By ID Endpoint
 	// (GET /api/v1/users/{userId})
 	GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error)
 }

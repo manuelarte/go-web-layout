@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -28,7 +29,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not valid uuid": {
 			id: "1",
 			expected: ErrorResponse{
-				Code: http.StatusBadRequest,
+				Code: strconv.Itoa(http.StatusBadRequest),
 				Details: map[string]string{
 					"userId": "error unmarshaling '1' text as *uuid.UUID: invalid UUID length: 1",
 				},
@@ -40,7 +41,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not existing user": {
 			id: "08ec89b3-288c-4b38-ba25-b91c81004699",
 			expected: ErrorResponse{
-				Code:    http.StatusNotFound,
+				Code:    strconv.Itoa(http.StatusNotFound),
 				Message: "No user found with id: 08ec89b3-288c-4b38-ba25-b91c81004699",
 			},
 			expectedMockCall: func(id string, ms *users.MockService) {

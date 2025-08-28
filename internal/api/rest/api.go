@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -59,7 +60,7 @@ func CreateRestAPI(r chi.Router, userService users.Service) {
 			if errors.As(err, &invalidParamError) {
 				w.WriteHeader(http.StatusBadRequest)
 				resp := ErrorResponse{
-					Code: http.StatusBadRequest,
+					Code: strconv.Itoa(http.StatusBadRequest),
 					Details: map[string]string{
 						invalidParamError.ParamName: invalidParamError.Err.Error(),
 					},

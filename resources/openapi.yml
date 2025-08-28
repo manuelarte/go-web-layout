@@ -3,12 +3,14 @@ openapi: 3.0.1
 info:
   contact:
     name: manuelarte <https://github.com/manuelarte>
+    email: manueldoncelmartos@gmail.com
+    url: https://github.com/manuelarte
   description: Go Web Layout, an example of a Go Web Project layout.
   title: Go-Web-Layout
   version: '0.0.1'
 
 servers:
-  - url: /
+  - url: https://localhost:3001
     description: Local development server.
 
 paths:
@@ -16,7 +18,8 @@ paths:
     get:
       operationId: actuatorsInfo
       description: Get info about the application.
-      summary: Actuators
+      summary: Actuators Info Endpoint
+      security: []
       tags:
         - actuators
       responses:
@@ -26,11 +29,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Info'
+        "4XX":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /actuators/health:
     get:
       operationId: actuatorsHealth
       description: Get health information about the application.
-      summary: Actuators
+      summary: Actuators Health Endpoint
+      security: []
       tags:
         - actuators
       responses:
@@ -40,11 +56,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
+        "4XX":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/users:
     get:
       operationId: getUsers
       description: Get all users.
-      summary: Users
+      summary: Get Users Endpoint
+      security: []
       tags:
         - users
       parameters:
@@ -54,6 +83,7 @@ paths:
           required: false
           schema:
             type: integer
+            format: int32
             minimum: 0
         - name: size
           in: query
@@ -61,6 +91,7 @@ paths:
           required: false
           schema:
             type: integer
+            format: int32
             minimum: 1
             default: 20
             maximum: 50
@@ -71,8 +102,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PageUsers'
-        "400":
-          description: Bad request
+        "4XX":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -80,8 +117,9 @@ paths:
   /api/v1/users/{userId}:
     get:
       operationId: getUser
-      description: Get a user by id.
-      summary: Get User
+      description: Get User Info by User ID.
+      summary: Get User By ID Endpoint
+      security: []
       tags:
         - users
       parameters:
@@ -99,8 +137,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        "400":
-          description: Bad request
+        "4XX":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -115,12 +159,13 @@ components:
         - message
       properties:
         code:
-          type: integer
-          description: The resulting http code
+          type: string
+          description: The error code
+          pattern: '^[0-9]4$'
         message:
           type: string
           description: Description of the error occurred
-        details: {}
+        details: { }
     Health:
       type: object
       description: Health checks about the status of the app
@@ -142,11 +187,11 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/HealthStatus'
-        details: {}
+        details: { }
     HealthStatus:
       type: string
       description: Status of the health check
-      enum: ['UP', 'DOWN']
+      enum: [ 'UP', 'DOWN' ]
     Info:
       type: object
       description: Info about the version deployed
@@ -184,12 +229,15 @@ components:
       properties:
         commitId:
           type: string
+          format: git-commit-id
           description: Commit id of the version deployed
         branch:
           type: string
+          format: git-ref
           description: Branch the app was built from
         buildTime:
           type: string
+          format: date-time
           description: Build time of the version deployed
         buildUrl:
           format: url
@@ -211,17 +259,23 @@ components:
       properties:
         size:
           type: integer
+          format: int32
           description: Size of the page
+          minimum: 1
         totalElements:
           type: integer
+          format: int64
           description: Total number of elements in the page
-          x-go-type: int64
+          minimum: 0
         totalPages:
           type: integer
+          format: int32
           description: Total number of pages
         number:
           type: integer
+          format: int32
           description: Current page number
+          minimum: 0
     PageUsers:
       type: object
       required:
@@ -273,6 +327,9 @@ components:
         username:
           type: string
           description: Username of the user
+          pattern: '^[a-zA-Z0-9_-]{3,32}$'
+          minLength: 3
+          maxLength: 32
 
 tags:
   - name: actuators

@@ -1,6 +1,9 @@
 package rest
 
-import "net/http"
+import (
+	"net/http"
+	"strconv"
+)
 
 var _ error = new(ValidationError)
 
@@ -30,7 +33,7 @@ func (v ValidationError) ErrorResponse() ErrorResponse {
 	}
 
 	return ErrorResponse{
-		Code:    http.StatusBadRequest,
+		Code:    strconv.Itoa(http.StatusBadRequest),
 		Details: details,
 		Message: "validation error",
 	}
