@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
+
+	"github.com/manuelarte/ptrutils"
 )
 
 var _ error = new(ValidationError)
@@ -23,18 +25,34 @@ func (v ValidationError) Error() string {
 	return msg
 }
 
-func (v ValidationError) ErrorResponse() ErrorResponse {
-	details := make(map[string][]string)
+func (v ValidationError) ErrorResponse(traceID string) ErrorResponse {
+	errors := make([]Error, len(v.errors))
 
 	for key, errs := range v.errors {
-		for _, err := range errs {
-			details[key] = append(details[key], err.Error())
+		for i, err := range errs {
+			errors[i] = Error{
+				Detail:  err.Error(),
+				Pointer: key,
+			}
 		}
 	}
 
 	return ErrorResponse{
-		Code:    strconv.Itoa(http.StatusBadRequest),
-		Details: details,
-		Message: "validation error",
+		Type:     "ValidationError",
+		Title:    "Validation Error",
+		Detail:   "Validation Error",
+		Status:   http.StatusBadRequest,
+		Errors:   ptrutils.Ptr(errors),
+		Instance: traceID,
+	}
+}
+
+func (e *InvalidParamFormatError) ErrorResponse(traceID string) ErrorResponse {
+	return ErrorResponse{
+		Type:     "InvalidParameterValue",
+		Title:    "Invalid Parameter Value",
+		Detail:   fmt.Sprintf("%s: %s", e.ParamName, e.Err.Error()),
+		Status:   http.StatusBadRequest,
+		Instance: traceID,
 	}
 }

@@ -45,10 +45,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
-		ctx,
-		"Service.Create",
-	)
+	ctx, span := tracing.StartSpan(ctx, "Service.Create")
 	defer span.End()
 
 	hashedPassword, err := hashPassword(user.Password)
@@ -69,7 +66,7 @@ func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
 }
 
 func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
+	ctx, span := tracing.StartSpan(
 		ctx,
 		"Repository.GetAll",
 		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
@@ -116,7 +113,7 @@ func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 }
 
 func (r repository) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
+	ctx, span := tracing.StartSpan(
 		ctx,
 		"Repository.GetByID",
 		oteltrace.WithAttributes(attribute.String("id", id.String())),

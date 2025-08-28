@@ -36,7 +36,7 @@ func NewService(r Repository) Service {
 }
 
 func (s service) Create(ctx context.Context, user NewUser) (User, error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
+	ctx, span := tracing.StartSpan(
 		ctx,
 		"Service.Create",
 	)
@@ -51,7 +51,7 @@ func (s service) Create(ctx context.Context, user NewUser) (User, error) {
 }
 
 func (s service) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
+	ctx, span := tracing.StartSpan(
 		ctx,
 		"Service.GetAll",
 		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
@@ -67,7 +67,7 @@ func (s service) GetAll(ctx context.Context, pr pagination.PageRequest) (paginat
 }
 
 func (s service) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
-	_, span := tracing.GetOrNewTracer(ctx).Start(
+	ctx, span := tracing.StartSpan(
 		ctx,
 		"Service.GetByID",
 		oteltrace.WithAttributes(attribute.String("id", id.String())),

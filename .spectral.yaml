@@ -5,5 +5,7 @@ extends:
   - "spectral:arazzo"
   - "https://unpkg.com/@apisyouwonthate/style-guide@1.5.0/dist/ruleset.js"
 rules:
+  # Disabling https check because this is a template
+  hosts-https-only-oas3: off
   # Disabling Security check because this is a template
   no-security-schemes-defined: off
