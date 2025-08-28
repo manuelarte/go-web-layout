@@ -22,8 +22,8 @@ WORKDIR /app/cmd/go-web-layout
 
 # Build the binary
 RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-w -s \
-    -X github.com/manuelarte/go-web-layout/internal/info.Branch=${BRANCH} \
-    -X github.com/manuelarte/go-web-layout/internal/info.BuildTime=${BUILD_TIME} \
+    -X 'github.com/manuelarte/go-web-layout/internal/info.Branch=${BRANCH}' \
+    -X 'github.com/manuelarte/go-web-layout/internal/info.BuildTime=${BUILD_TIME}' \
     -X github.com/manuelarte/go-web-layout/internal/info.BuildURL=${BUILD_URL} \
     -X github.com/manuelarte/go-web-layout/internal/info.CommitID=${COMMIT_ID} \
     -X github.com/manuelarte/go-web-layout/internal/info.Version=${APP_VERSION}"  \

@@ -28,11 +28,11 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not valid uuid": {
 			id: "1",
 			expected: ErrorResponse{
-				Code: http.StatusBadRequest,
-				Details: map[string]string{
-					"userId": "error unmarshaling '1' text as *uuid.UUID: invalid UUID length: 1",
-				},
-				Message: "userId: Invalid parameter value",
+				Type:     "InvalidParameterValue",
+				Title:    "Invalid Parameter Value",
+				Detail:   "userId: error unmarshaling '1' text as *uuid.UUID: invalid UUID length: 1",
+				Status:   http.StatusBadRequest,
+				Instance: "00000000000000000000000000000000",
 			},
 			expectedMockCall: func(id string, ms *users.MockService) {
 			},
@@ -40,8 +40,11 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not existing user": {
 			id: "08ec89b3-288c-4b38-ba25-b91c81004699",
 			expected: ErrorResponse{
-				Code:    http.StatusNotFound,
-				Message: "No user found with id: 08ec89b3-288c-4b38-ba25-b91c81004699",
+				Type:     "NotFound",
+				Title:    "User not found",
+				Detail:   "No User found with id: 08ec89b3-288c-4b38-ba25-b91c81004699",
+				Status:   http.StatusNotFound,
+				Instance: "00000000000000000000000000000000",
 			},
 			expectedMockCall: func(id string, ms *users.MockService) {
 				ms.EXPECT().GetByID(gomock.Any(), gomock.Eq(uuid.MustParse(id))).Return(users.User{}, sql.ErrNoRows)
@@ -67,7 +70,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			// Assert
-			require.Equal(t, http.StatusBadRequest, w.Code)
+			assert.Equal(t, int(test.expected.Status), w.Code)
 
 			expectedJSON, err := json.Marshal(test.expected)
 			require.NoError(t, err)

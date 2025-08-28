@@ -50,7 +50,13 @@ func InitTracerProvider() (*sdktrace.TracerProvider, error) {
 	), nil
 }
 
-func GetOrNewTracer(ctx context.Context) oteltrace.Tracer {
+func StartSpan(ctx context.Context, name string, opts ...oteltrace.SpanStartOption) (context.Context, oteltrace.Span) {
+	tracer := getOrNewTracer(ctx)
+
+	return tracer.Start(ctx, name, opts...)
+}
+
+func getOrNewTracer(ctx context.Context) oteltrace.Tracer {
 	previous := ctx.Value(Context{})
 	if previous != nil {
 		//nolint:errcheck // it should always be ok

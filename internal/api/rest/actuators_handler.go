@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"time"
 
 	"github.com/manuelarte/go-web-layout/internal/info"
 )
@@ -31,9 +32,15 @@ func (h ActuatorsHandler) ActuatorsInfo(
 		},
 		Git: InfoGit{
 			Branch:    info.Branch,
-			BuildTime: info.BuildTime,
+			BuildTime: formatBuildTime(info.BuildTime),
 			BuildUrl:  info.BuildURL,
 			CommitId:  info.CommitID,
 		},
 	}, nil
+}
+
+func formatBuildTime(ts string) time.Time {
+	t, _ := time.Parse("2006-01-02 15:04:05-07:00", ts)
+
+	return t
 }

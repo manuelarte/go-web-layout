@@ -5,11 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/manuelarte/ptrutils"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/manuelarte/go-web-layout/internal/pagination"
+	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -24,12 +28,25 @@ func NewUsersHandler(service users.Service) UsersHandler {
 }
 
 func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error) {
+	ctx, span := tracing.StartSpan(
+		ctx,
+		"Service.GetAll",
+		oteltrace.WithAttributes(attribute.String("id", request.UserId.String())),
+	)
+	defer span.End()
+
 	user, err := h.service.GetByID(ctx, request.UserId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return GetUser400JSONResponse{
-				Code:    404,
-				Message: fmt.Sprintf("No user found with id: %s", request.UserId.String()),
+			return GetUser4XXApplicationProblemPlusJSONResponse{
+				StatusCode: http.StatusNotFound,
+				Body: ErrorResponse{
+					Type:     "NotFound",
+					Title:    "User not found",
+					Detail:   fmt.Sprintf("No User found with id: %s", request.UserId.String()),
+					Status:   http.StatusNotFound,
+					Instance: span.SpanContext().TraceID().String(),
+				},
 			}, nil
 		}
 
@@ -43,14 +60,20 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
-	pr, err := pagination.NewPageRequest(page, size)
+	pr, err := pagination.NewPageRequest(int(page), int(size))
 	if err != nil {
 		if errors.Is(err, pagination.ErrPageMustBeGreaterOrEqualThanZero) {
-			return nil, ValidationError{map[string][]error{"page": {err}}}
+			return nil, &InvalidParamFormatError{
+				ParamName: "page",
+				Err:       err,
+			}
 		}
 
 		if errors.Is(err, pagination.ErrSizeMustBeGreaterOrEqualThanZero) {
-			return nil, ValidationError{map[string][]error{"size": {err}}}
+			return nil, &InvalidParamFormatError{
+				ParamName: "size",
+				Err:       err,
+			}
 		}
 
 		return nil, fmt.Errorf("error creating page request: %w", err)
@@ -69,7 +92,8 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 			Number:        page,
 			Size:          size,
 			TotalElements: pageUsers.TotalElements(),
-			TotalPages:    pageUsers.TotalPages(),
+			//gosec:disable G115 -- Not expecting to overflow
+			TotalPages: int32(pageUsers.TotalPages()),
 		},
 	}, nil
 }
