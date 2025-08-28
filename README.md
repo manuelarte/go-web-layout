@@ -33,6 +33,25 @@ API specification in [openapi.yml](resources/openapi.yml) and code automatically
 The [gRPC](https://grpc.io/) API is defined in the folder [proto/](proto).
 The code is generated using [buf](https://buf.build/). in the folder [./internal/api/grpc](./internal/api/grpc).
 
+## Linters
+
+The app is using the following linters to keep the standard/best practices and consistency:
+
+### Golangci-lint
+
+[Golangci-lint](https://golangci-lint.run/) is the most common linter for Go.
+The configuration can be found in [.golangci.yml](.golangci.yml).
+
+### Buf
+
+[Buf](https://buf.build/) is a linter for [Protocol Buffers](https://developers.google.com/protocol-buffers).
+The configuration can be found in [buf.gen.yaml](buf.gen.yaml).
+
+### Spectral
+
+[Spectral](https://stoplight.io/open-source/spectral) is a linter for [OpenAPI](https://swagger.io/specification/) and [AsyncAPI](https://www.asyncapi.com/).
+The configuration can be found in [.spectral.yaml](.spectral.yaml).
+
 ## 🛠️ Getting Started
 
 Run the project by:
