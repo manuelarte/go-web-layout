@@ -3,6 +3,7 @@ extends: default
 
 ignore: |
   resources/openapi.yml
+  styles/*
 
 rules:
   line-length:
