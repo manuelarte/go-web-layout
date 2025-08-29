@@ -50,14 +50,6 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.4
-  spectral:
-    name: Run Spectral
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: stoplightio/spectral-action@latest
-        with:
-          file_glob: './resources/openapi.yml'
   hadolint:
     name: hadolint
     runs-on: ubuntu-latest
@@ -67,28 +59,28 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-  spell:
-    name: "Spell check"
+  spectral:
+    name: Run Spectral
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - uses: stoplightio/spectral-action@latest
+        with:
+          file_glob: './resources/openapi.yml'
+  prose:
+    name: vale/codespell/typos
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 1
+      - uses: errata-ai/vale-action@v2.1.1
+        with:
+          vale_flags: "--glob '*.{md,rst}' --glob '!styles/*'"
       - uses: codespell-project/actions-codespell@v2
         with:
           check_filenames: true
           check_hidden: true
-  typos:
-    # https://github.com/crate-ci/typos
-    # Add exceptions to _typos.toml
-    # install and run locally: cargo install typos-cli && typos
-    name: typos
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Actions Repository
-        uses: actions/checkout@v5
-
       - name: Check spelling of entire workspace
         uses: crate-ci/typos@v1
   markdownlint:

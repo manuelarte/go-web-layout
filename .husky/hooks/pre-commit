@@ -1,5 +1,6 @@
 #!/bin/sh
 
+vale --glob '*.{md,rst}' --glob '!styles/*' *
 markdownlint-cli2 --fix ./**/*.md
 # Stage any changes made by the linter
 git add -u
