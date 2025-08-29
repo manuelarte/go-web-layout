@@ -7,7 +7,8 @@
   // Define glob expressions to ignore
   "ignores": [
     "LICENSE.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "styles"
   ],
   "config": {
     // MD013/line-length : Line length : https://github.com/DavidAnson/markdownlint/blob/v0.32.1/doc/md013.md
