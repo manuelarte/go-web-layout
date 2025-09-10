@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/manuelarte/go-web-layout/internal/users"
 	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -156,7 +157,7 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 
 	// Username Username of the user
-	Username string `json:"username"`
+	Username users.Username `json:"username"`
 }
 
 // GetUsersParams defines parameters for GetUsers.

@@ -29,8 +29,8 @@ func NewServer(userService users.Service) Server {
 // CreateUser creates a new user.
 func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*CreateUserResponse, error) {
 	user, err := s.userService.Create(ctx, users.NewUser{
-		Username: request.GetUsername(),
-		Password: request.GetPassword(),
+		Username: users.Username(request.GetUsername()),
+		Password: users.Password(request.GetPassword()),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %w", err)
@@ -53,6 +53,6 @@ func transformUser(user users.User) User {
 		Id:        user.ID.String(),
 		CreatedAt: timestamppb.New(user.CreatedAt),
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
-		Username:  user.Username,
+		Username:  string(user.Username),
 	}
 }

@@ -122,7 +122,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 						Id:        userCreated.ID.String(),
 						CreatedAt: timestamppb.New(userCreated.CreatedAt),
 						UpdatedAt: timestamppb.New(userCreated.UpdatedAt),
-						Username:  userCreated.Username,
+						Username:  string(userCreated.Username),
 					},
 				}
 			},
@@ -154,11 +154,11 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 				ID:        uuid.UUID{},
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
-				Username:  test.request.GetUsername(),
+				Username:  users.Username(test.request.GetUsername()),
 			}
 			usersService.EXPECT().Create(gomock.Any(), users.NewUser{
-				Username: test.request.GetUsername(),
-				Password: test.request.GetPassword(),
+				Username: users.Username(test.request.GetUsername()),
+				Password: users.Password(test.request.GetPassword()),
 			}).Return(userCreated, nil)
 
 			// Act
