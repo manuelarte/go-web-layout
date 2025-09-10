@@ -145,7 +145,7 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 
 	// Id Id of the user
-	Id openapi_types.UUID `json:"id"`
+	Id users.UserID `json:"id"`
 
 	// Kind Kind of the response
 	Kind Kind `json:"kind"`

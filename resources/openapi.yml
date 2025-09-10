@@ -354,6 +354,7 @@ components:
           type: string
           format: uuid
           description: Id of the user
+          x-go-type: users.UserID
         createdAt:
           type: string
           format: date-time

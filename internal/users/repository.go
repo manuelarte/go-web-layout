@@ -135,7 +135,7 @@ func transformModel(user sqlc.User) User {
 	updatedAt, _ := time.Parse(layout, user.UpdatedAt.(string))
 
 	return User{
-		ID:        uuid.MustParse(user.ID.(string)),
+		ID:        UserID(uuid.MustParse(user.ID.(string))),
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 		Username:  Username(user.Username),

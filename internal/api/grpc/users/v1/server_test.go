@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"buf.build/go/protovalidate"
-	"github.com/google/uuid"
 	protovalidatemiddleware "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -151,7 +150,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 
 			// Assert mocks
 			userCreated := users.User{
-				ID:        uuid.UUID{},
+				ID:        users.UserID{},
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
 				Username:  users.Username(test.request.GetUsername()),

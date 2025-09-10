@@ -17,7 +17,7 @@ var (
 type (
 	// User model to represent a user.
 	User struct {
-		ID        uuid.UUID
+		ID        UserID
 		CreatedAt time.Time
 		UpdatedAt time.Time
 		Username  Username
@@ -29,6 +29,8 @@ type (
 		Password Password
 	}
 
+	UserID uuid.UUID
+
 	Username string
 
 	Password string
@@ -36,6 +38,10 @@ type (
 
 func (u *NewUser) IsValid() error {
 	return errors.Join(u.Username.IsValid(), u.Password.IsValid())
+}
+
+func (id UserID) String() string {
+	return uuid.UUID(id).String()
 }
 
 func (u Username) IsValid() error {
