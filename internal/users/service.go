@@ -42,6 +42,10 @@ func (s service) Create(ctx context.Context, user NewUser) (User, error) {
 	)
 	defer span.End()
 
+	if err := user.IsValid(); err != nil {
+		return User{}, fmt.Errorf("invalid user: %w", err)
+	}
+
 	createdUser, err := s.repository.Create(ctx, user)
 	if err != nil {
 		return User{}, fmt.Errorf("error creating user: %w", err)

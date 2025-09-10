@@ -55,7 +55,7 @@ func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
 
 	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
 		ID:       uuid.New().String(),
-		Username: user.Username,
+		Username: string(user.Username),
 		Password: hashedPassword,
 	})
 	if err != nil {
@@ -135,14 +135,14 @@ func transformModel(user sqlc.User) User {
 	updatedAt, _ := time.Parse(layout, user.UpdatedAt.(string))
 
 	return User{
-		ID:        uuid.MustParse(user.ID.(string)),
+		ID:        UserID(uuid.MustParse(user.ID.(string))),
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
-		Username:  user.Username,
+		Username:  Username(user.Username),
 	}
 }
 
-func hashPassword(password string) (string, error) {
+func hashPassword(password Password) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 
 	return string(bytes), err

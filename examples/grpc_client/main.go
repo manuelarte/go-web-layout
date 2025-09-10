@@ -22,7 +22,7 @@ func main() {
 
 	request := usersv1.CreateUserRequest{
 		Username: "other",
-		Password: "other",
+		Password: "otherLongPassword",
 	}
 
 	resp, err := client.CreateUser(context.Background(), &request)

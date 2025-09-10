@@ -38,6 +38,7 @@ linters:
     - iface  # No need for this linter here.
     - ireturn  # No need for this linter here.
     - mnd  # To be checked in code reviews.
+    - noinlineerr  # I prefer inline errors.
     - promlinter  # Related to prometheus.
     - rowserrcheck  # Related to SQL.
     - spancheck  # Related to OpenTelemetry.

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"buf.build/go/protovalidate"
-	"github.com/google/uuid"
 	protovalidatemiddleware "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/protovalidate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -122,7 +121,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 						Id:        userCreated.ID.String(),
 						CreatedAt: timestamppb.New(userCreated.CreatedAt),
 						UpdatedAt: timestamppb.New(userCreated.UpdatedAt),
-						Username:  userCreated.Username,
+						Username:  string(userCreated.Username),
 					},
 				}
 			},
@@ -151,14 +150,14 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 
 			// Assert mocks
 			userCreated := users.User{
-				ID:        uuid.UUID{},
+				ID:        users.UserID{},
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
-				Username:  test.request.GetUsername(),
+				Username:  users.Username(test.request.GetUsername()),
 			}
 			usersService.EXPECT().Create(gomock.Any(), users.NewUser{
-				Username: test.request.GetUsername(),
-				Password: test.request.GetPassword(),
+				Username: users.Username(test.request.GetUsername()),
+				Password: users.Password(test.request.GetPassword()),
 			}).Return(userCreated, nil)
 
 			// Act
