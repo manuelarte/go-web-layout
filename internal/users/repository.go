@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
@@ -54,7 +53,7 @@ func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
 	}
 
 	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
-		ID:       uuid.New().String(),
+		ID:       uuid.New(),
 		Username: string(user.Username),
 		Password: hashedPassword,
 	})
@@ -120,7 +119,7 @@ func (r repository) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
 	)
 	defer span.End()
 
-	dao, err := r.queries.GetUserByID(ctx, id.String())
+	dao, err := r.queries.GetUserByID(ctx, id)
 	if err != nil {
 		return User{}, fmt.Errorf("error getting user by id: %w", err)
 	}
@@ -128,16 +127,11 @@ func (r repository) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
 	return transformModel(dao), nil
 }
 
-//nolint:errcheck // TODO check how to do it better.
 func transformModel(user sqlc.User) User {
-	layout := "2006-01-02 15:04:05"
-	createdAt, _ := time.Parse(layout, user.CreatedAt.(string))
-	updatedAt, _ := time.Parse(layout, user.UpdatedAt.(string))
-
 	return User{
-		ID:        UserID(uuid.MustParse(user.ID.(string))),
-		CreatedAt: createdAt,
-		UpdatedAt: updatedAt,
+		ID:        UserID(user.ID),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 		Username:  Username(user.Username),
 	}
 }

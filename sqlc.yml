@@ -1,5 +1,14 @@
 ---
 version: "2"
+
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+
 sql:
   - engine: "sqlite"
     queries: "query.sql"
@@ -8,3 +17,8 @@ sql:
       go:
         package: "sqlc"
         out: "internal/sqlc"
+        overrides:
+          - column: "users.created_at"
+            go_type: "time.Time"
+          - column: "users.updated_at"
+            go_type: "time.Time"
