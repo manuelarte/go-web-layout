@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -56,9 +57,10 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
+			cfg := config.AppEnv{}
 			r := chi.NewRouter()
 			userService := users.NewMockService(gomock.NewController(t))
-			CreateRestAPI(r, userService)
+			CreateRestAPI(r, cfg, userService)
 
 			w := httptest.NewRecorder()
 			url := fmt.Sprintf("/api/v1/users/%s", test.id)

@@ -25,8 +25,8 @@ const (
 
 // Defines values for Kind.
 const (
-	KindCollection Kind = "Collection"
-	KindUser       Kind = "User"
+	KindPage Kind = "Page"
+	KindUser Kind = "User"
 )
 
 // Error defines model for Error.
@@ -114,8 +114,17 @@ type Kind string
 
 // Page defines model for Page.
 type Page struct {
+	// Next URL to the next page
+	Next string `json:"next"`
+
 	// Number Current page number
 	Number int32 `json:"number"`
+
+	// Prev URL to the previous page
+	Prev string `json:"prev"`
+
+	// Self URL to the current page
+	Self string `json:"self"`
 
 	// Size Size of the page
 	Size int32 `json:"size"`
@@ -132,11 +141,24 @@ type PageUsers struct {
 	Content []User `json:"content"`
 
 	// Kind Kind of the response
-	Kind Kind `json:"kind"`
-	Page Page `json:"page"`
+	Kind     Kind            `json:"kind"`
+	Metadata RequestMetadata `json:"metadata"`
+	Page     Page            `json:"page"`
+}
 
-	// Self URL to the users page
-	Self string `json:"self"`
+// RequestMetadata defines model for RequestMetadata.
+type RequestMetadata struct {
+	// ApiVersion Version of the application
+	ApiVersion string `json:"apiVersion"`
+
+	// Environment Environment where the request was made
+	Environment string `json:"environment"`
+
+	// RequestId Request identifier
+	RequestId string `json:"requestId"`
+
+	// ServerId Server id where the request was made
+	ServerId string `json:"serverId"`
 }
 
 // User defines model for User.
@@ -145,7 +167,7 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt"`
 
 	// Id Id of the user
-	Id users.UserID `json:"id"`
+	Id openapi_types.UUID `json:"id"`
 
 	// Kind Kind of the response
 	Kind Kind `json:"kind"`

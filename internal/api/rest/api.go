@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	resources "github.com/manuelarte/go-web-layout"
+	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
@@ -23,9 +24,9 @@ type API struct {
 	UsersHandler
 }
 
-func CreateRestAPI(r chi.Router, userService users.Service) {
+func CreateRestAPI(r chi.Router, cfg config.AppEnv, userService users.Service) {
 	api := API{
-		UsersHandler: NewUsersHandler(userService),
+		UsersHandler: NewUsersHandler(cfg, userService),
 	}
 	ssi := NewStrictHandlerWithOptions(api, nil, StrictHTTPServerOptions{
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
