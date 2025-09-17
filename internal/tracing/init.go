@@ -57,7 +57,7 @@ func StartSpan(ctx context.Context, name string, opts ...oteltrace.SpanStartOpti
 }
 
 func getOrNewTracer(ctx context.Context) oteltrace.Tracer {
-	previous := ctx.Value(Context{})
+	previous := ctx.Value(TracingContextKey)
 	if previous != nil {
 		//nolint:errcheck // it should always be ok
 		return previous.(oteltrace.Tracer)

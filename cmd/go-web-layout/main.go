@@ -112,7 +112,7 @@ func run() error {
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
 		BaseContext: func(net.Listener) context.Context {
-			return context.WithValue(ctx, tracing.Context{}, tracer)
+			return context.WithValue(ctx, tracing.TracingContextKey, tracer)
 		},
 	}
 
