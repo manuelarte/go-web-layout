@@ -62,6 +62,7 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
+	//nolint:errcheck // requestID is added by a middleware
 	requestID := ctx.Value(middleware.RequestIDKey).(string)
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
@@ -93,10 +94,12 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	urlBuilder := func(page, size int32) string { return fmt.Sprintf("/api/v1/users?page=%d&size=%d", page, size) }
 	self := urlBuilder(page, size)
 	prev := urlBuilder(page-1, size)
+
 	next := urlBuilder(page+1, size)
 	if page == 0 {
 		prev = ""
 	}
+	//gosec:disable G115 -- Not expecting to overflow
 	if page == int32(pageUsers.TotalPages()-1) {
 		next = ""
 	}
@@ -115,9 +118,9 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 			Next:       next,
 		},
 		Metadata: RequestMetadata{
-			Environment: h.cfg.ENV,
+			Environment: h.cfg.Env,
 			RequestId:   requestID,
-			ServerId:    h.cfg.SERVER_ID,
+			ServerId:    h.cfg.ServerID,
 			ApiVersion:  "v1",
 		},
 	}, nil
