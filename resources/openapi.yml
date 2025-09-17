@@ -247,6 +247,7 @@ components:
         - name
         - description
         - version
+        - requestId
       properties:
         name:
           type: string
@@ -285,7 +286,7 @@ components:
       type: string
       description: Kind of the response
       enum:
-        - Collection
+        - Page
         - User
     Page:
       type: object
@@ -294,6 +295,9 @@ components:
         - totalElements
         - totalPages
         - number
+        - self
+        - prev
+        - next
       properties:
         size:
           type: integer
@@ -314,18 +318,26 @@ components:
           format: int32
           description: Current page number
           minimum: 0
-    PageUsers:
-      type: object
-      required:
-        - self
-        - kind
-        - content
-        - page
-      properties:
         self:
           type: string
           format: uri
-          description: URL to the users page
+          description: URL to the current page
+        prev:
+          type: string
+          format: uri
+          description: URL to the previous page
+        next:
+          type: string
+          format: uri
+          description: URL to the next page
+    PageUsers:
+      type: object
+      required:
+        - kind
+        - content
+        - page
+        - metadata
+      properties:
         kind:
           $ref: '#/components/schemas/Kind'
         content:
@@ -334,6 +346,28 @@ components:
             $ref: '#/components/schemas/User'
         page:
           $ref: '#/components/schemas/Page'
+        metadata:
+          $ref: '#/components/schemas/RequestMetadata'
+    RequestMetadata:
+      type: object
+      required:
+        - environment
+        - requestId
+        - serverId
+        - apiVersion
+      properties:
+        environment:
+          type: string
+          description: Environment where the request was made
+        requestId:
+          type: string
+          description: Request identifier
+        serverId:
+          type: string
+          description: Server id where the request was made
+        apiVersion:
+          type: string
+          description: Version of the application
     User:
       type: object
       required:
@@ -354,7 +388,6 @@ components:
           type: string
           format: uuid
           description: Id of the user
-          x-go-type: users.UserID
         createdAt:
           type: string
           format: date-time

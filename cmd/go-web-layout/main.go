@@ -103,7 +103,7 @@ func run() error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, userService)
+	rest.CreateRestAPI(r, cfg, userService)
 
 	srvErr := make(chan error, 1)
 

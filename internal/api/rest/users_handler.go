@@ -7,22 +7,27 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 	"github.com/manuelarte/ptrutils"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
+	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 type UsersHandler struct {
+	cfg     config.AppEnv
 	service users.Service
 }
 
-func NewUsersHandler(service users.Service) UsersHandler {
+func NewUsersHandler(cfg config.AppEnv, service users.Service) UsersHandler {
 	return UsersHandler{
+		cfg:     cfg,
 		service: service,
 	}
 }
@@ -57,6 +62,8 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
+	//nolint:errcheck // requestID is added by a middleware
+	requestID := ctx.Value(middleware.RequestIDKey).(string)
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
@@ -84,9 +91,21 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		return nil, fmt.Errorf("error getting users: %w", err)
 	}
 
+	urlBuilder := func(page, size int32) string { return fmt.Sprintf("/api/v1/users?page=%d&size=%d", page, size) }
+	self := urlBuilder(page, size)
+	prev := urlBuilder(page-1, size)
+
+	next := urlBuilder(page+1, size)
+	if page == 0 {
+		prev = ""
+	}
+	//gosec:disable G115 -- Not expecting to overflow
+	if page == int32(pageUsers.TotalPages()-1) {
+		next = ""
+	}
+
 	return GetUsers200JSONResponse{
-		Self:    fmt.Sprintf("/api/v1/users?page=%d&size=%d", page, size),
-		Kind:    KindCollection,
+		Kind:    KindPage,
 		Content: transformUserDaosToDtos(pageUsers.Content()),
 		Page: Page{
 			Number:        page,
@@ -94,6 +113,15 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 			TotalElements: pageUsers.TotalElements(),
 			//gosec:disable G115 -- Not expecting to overflow
 			TotalPages: int32(pageUsers.TotalPages()),
+			Self:       self,
+			Prev:       prev,
+			Next:       next,
+		},
+		Metadata: RequestMetadata{
+			Environment: h.cfg.Env,
+			RequestId:   requestID,
+			ServerId:    h.cfg.ServerID,
+			ApiVersion:  "v1",
 		},
 	}, nil
 }
@@ -108,7 +136,7 @@ func transformUserDaoToDto(dao users.User) User {
 	return User{
 		Self:      fmt.Sprintf("/api/v1/users/%s", dao.ID),
 		Kind:      KindUser,
-		Id:        dao.ID,
+		Id:        uuid.UUID(dao.ID),
 		CreatedAt: dao.CreatedAt,
 		UpdatedAt: dao.UpdatedAt,
 		Username:  dao.Username,
