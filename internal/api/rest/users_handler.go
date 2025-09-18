@@ -95,6 +95,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	self := urlBuilder(page, size)
 	prev := urlBuilder(page-1, size)
 	first := urlBuilder(0, size)
+	//gosec:disable G115 -- Not expecting to overflow
 	last := urlBuilder(int32(pageUsers.TotalPages()-1), size)
 
 	next := urlBuilder(page+1, size)
