@@ -298,6 +298,8 @@ components:
         - self
         - prev
         - next
+        - first
+        - last
       properties:
         size:
           type: integer
@@ -330,6 +332,14 @@ components:
           type: string
           format: uri
           description: URL to the next page
+        first:
+          type: string
+          format: uri
+          description: URL to the first page
+        last:
+          type: string
+          format: uri
+          description: URL to the last page
     PageUsers:
       type: object
       required:

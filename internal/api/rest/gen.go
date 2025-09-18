@@ -114,6 +114,12 @@ type Kind string
 
 // Page defines model for Page.
 type Page struct {
+	// First URL to the first page
+	First string `json:"first"`
+
+	// Last URL to the last page
+	Last string `json:"last"`
+
 	// Next URL to the next page
 	Next string `json:"next"`
 
