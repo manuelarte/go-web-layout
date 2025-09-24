@@ -91,7 +91,9 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		return nil, fmt.Errorf("error getting users: %w", err)
 	}
 
-	urlBuilder := func(page, size int32) string { return fmt.Sprintf("/api/v1/users?page=%d&size=%d", page, size) }
+	urlBuilder := func(page, size int32) string {
+		return fmt.Sprintf("%s?page=%d&size=%d", Paths{}.GetUsersEndpoint.Path(), page, size)
+	}
 	self := urlBuilder(page, size)
 	prev := urlBuilder(page-1, size)
 	first := urlBuilder(0, size)
@@ -139,7 +141,7 @@ func transformUserDaosToDtos(daos []users.User) []User {
 
 func transformUserDaoToDto(dao users.User) User {
 	return User{
-		Self:      fmt.Sprintf("/api/v1/users/%s", dao.ID),
+		Self:      Paths{}.GetUserEndpoint.Path(dao.ID.String()),
 		Kind:      KindUser,
 		Id:        uuid.UUID(dao.ID),
 		CreatedAt: dao.CreatedAt,
