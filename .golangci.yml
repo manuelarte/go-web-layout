@@ -4,9 +4,9 @@ version: "2"
 formatters:
   enable:
     # keep-sorted start
+    - gofumpt
     - gci
     - gofmt
-    - gofumpt
     # keep-sorted end
   settings:
     # keep-sorted start
