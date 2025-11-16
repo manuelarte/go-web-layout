@@ -3,10 +3,13 @@ version: "2"
 
 formatters:
   enable:
+    # keep-sorted start
     - gci
     - gofmt
     - gofumpt
+    # keep-sorted end
   settings:
+    # keep-sorted start
     gci:
       sections:
         - standard
@@ -19,10 +22,12 @@ formatters:
           replacement: "any"
     gofumpt:
       extra-rules: true
+    # keep-sorted end
 
 linters:
   default: all
   disable:
+    # keep-sorted start
     - decorder  # If applicable, to be checked in code reviews.
     - dupl  # Too many false positives.
     - err113  # This leads to lots of unnecessary allocations and boilerplate.
@@ -33,9 +38,9 @@ linters:
     - goheader  # No need of copyright headers.
     - gomodguard  # Not needed for a linter
     - gosmopolitan  # No i18n.
+    - iface  # No need for this linter here.
     - importas  # No need of aliasing imports.
     - inamedparam  # Not important.
-    - iface  # No need for this linter here.
     - ireturn  # No need for this linter here.
     - mnd  # To be checked in code reviews.
     - noinlineerr  # I prefer inline errors.
@@ -46,8 +51,10 @@ linters:
     - testpackage  # I want to test internal packages.
     - varnamelen  # To be checked in code reviews.
     - wsl  # Deprecated, using wsl_v5.
+    # keep-sorted end
 
   settings:
+    # keep-sorted start
     cyclop:
       max-complexity: 30
       package-average: 10
@@ -150,6 +157,7 @@ linters:
       align: false
     usetesting:
       os-temp-dir: true
+    # keep-sorted end
 
   exclusions:
     presets:

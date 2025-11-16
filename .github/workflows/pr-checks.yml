@@ -24,6 +24,18 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod
           git diff --exit-code go.sum
+  keep-sorted:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Run keep-sorted
+        run: |
+          go install github.com/google/keep-sorted@v0.7.1
+          keep-sorted .golangci.yml ./resources/openapi.yml
+          git diff --exit-code
   govulncheck:
     runs-on: ubuntu-latest
     name: Run govulncheck

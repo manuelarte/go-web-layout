@@ -4,14 +4,6 @@ package rest
 
 import "strings"
 
-type GetUserEndpoint struct{}
-
-func (p GetUserEndpoint) Path(userId string) string {
-	message := "/api/v1/users/{userId}"
-	message = strings.Replace(message, "{userId}", userId, -1)
-	return message
-}
-
 type GetUsersEndpoint struct{}
 
 func (p GetUsersEndpoint) Path() string {
@@ -19,10 +11,11 @@ func (p GetUsersEndpoint) Path() string {
 	return message
 }
 
-type ActuatorsHealthEndpoint struct{}
+type GetUserEndpoint struct{}
 
-func (p ActuatorsHealthEndpoint) Path() string {
-	message := "/actuators/health"
+func (p GetUserEndpoint) Path(userId string) string {
+	message := "/api/v1/users/{userId}"
+	message = strings.Replace(message, "{userId}", userId, -1)
 	return message
 }
 
@@ -33,9 +26,16 @@ func (p ActuatorsInfoEndpoint) Path() string {
 	return message
 }
 
+type ActuatorsHealthEndpoint struct{}
+
+func (p ActuatorsHealthEndpoint) Path() string {
+	message := "/actuators/health"
+	return message
+}
+
 type Paths struct {
 	GetUserEndpoint         GetUserEndpoint
-	GetUsersEndpoint        GetUsersEndpoint
-	ActuatorsHealthEndpoint ActuatorsHealthEndpoint
 	ActuatorsInfoEndpoint   ActuatorsInfoEndpoint
+	ActuatorsHealthEndpoint ActuatorsHealthEndpoint
+	GetUsersEndpoint        GetUsersEndpoint
 }
