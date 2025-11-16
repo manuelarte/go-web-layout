@@ -1,6 +1,7 @@
 ---
 openapi: 3.0.1
 info:
+  # keep-sorted start
   contact:
     name: Manuel Doncel Martos
     email: manueldoncelmartos@gmail.com
@@ -8,6 +9,7 @@ info:
   description: Go Web Layout, an example of a Go Web Project layout.
   title: Go-Web-Layout
   version: '0.0.1'
+  # keep-sorted end
 
 servers:
   - url: http://localhost:{port}
@@ -20,6 +22,34 @@ servers:
           - '3001'
 
 paths:
+  # keep-sorted start
+  /actuators/health:
+    get:
+      operationId: actuatorsHealth
+      description: Get health information about the application.
+      summary: Actuators Health Endpoint
+      security: []
+      tags:
+        - actuators
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        "4XX":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /actuators/info:
     get:
       operationId: actuatorsInfo
@@ -47,27 +77,35 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /actuators/health:
+  /api/v1/users/{userId}:
     get:
-      operationId: actuatorsHealth
-      description: Get health information about the application.
-      summary: Actuators Health Endpoint
+      operationId: getUser
+      description: Get User Info by User ID.
+      summary: Get User By ID Endpoint
       security: []
       tags:
-        - actuators
+        - users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: User id
       responses:
         "200":
           description: Successful response.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: '#/components/schemas/User'
         "4XX":
-          description: Too Many Requests
+          description: Validation Error
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: '#/components/schemas/ErrorResponse'
         "500":
           description: Internal Server Error
           content:
@@ -120,44 +158,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/users/{userId}:
-    get:
-      operationId: getUser
-      description: Get User Info by User ID.
-      summary: Get User By ID Endpoint
-      security: []
-      tags:
-        - users
-      parameters:
-        - in: path
-          name: userId
-          schema:
-            type: string
-            format: uuid
-          required: true
-          description: User id
-      responses:
-        "200":
-          description: Successful response.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        "4XX":
-          description: Validation Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+  # keep-sorted end
 
 components:
   schemas:
+    # keep-sorted start
     Error:
       type: object
       required:
@@ -413,9 +418,12 @@ components:
           minLength: 3
           maxLength: 32
           x-go-type: users.Username
+    # keep-sorted end
 
 tags:
+  # keep-sorted start
   - name: actuators
     description: Actuators endpoints
   - name: users
     description: Users endpoints
+  # keep-sorted end

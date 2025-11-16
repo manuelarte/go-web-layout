@@ -2,6 +2,7 @@
 
 vale --glob '*.{md,rst}' --glob '!styles/*' *
 markdownlint-cli2 --fix ./**/*.md
+keep-sorted ./.golangci.yml ./resources/openapi.yml
 # Stage any changes made by the linter
 git add -u
 codespell .

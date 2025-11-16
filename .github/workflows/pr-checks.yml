@@ -34,7 +34,7 @@ jobs:
       - name: Run keep-sorted
         run: |
           go install github.com/google/keep-sorted@v0.7.1
-          keep-sorted .golangci.yml
+          keep-sorted .golangci.yml ./resources/openapi.yml
           git diff --exit-code
   govulncheck:
     runs-on: ubuntu-latest
