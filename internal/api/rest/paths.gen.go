@@ -34,8 +34,8 @@ func (p ActuatorsHealthEndpoint) Path() string {
 }
 
 type Paths struct {
+	GetUsersEndpoint        GetUsersEndpoint
 	GetUserEndpoint         GetUserEndpoint
 	ActuatorsInfoEndpoint   ActuatorsInfoEndpoint
 	ActuatorsHealthEndpoint ActuatorsHealthEndpoint
-	GetUsersEndpoint        GetUsersEndpoint
 }

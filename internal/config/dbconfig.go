@@ -23,7 +23,7 @@ func Migrate() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to instantiate sqlit3 driver: %w", err)
 	}
 
-	sd, fsErr := iofs.New(resources.MigrationsFolder, "resources/migrations")
+	sd, fsErr := iofs.New(resources.ResourcesFolder, "resources/migrations")
 	if fsErr != nil {
 		return nil, fmt.Errorf("unable to instantiate migration source from filesystem: %w", fsErr)
 	}
