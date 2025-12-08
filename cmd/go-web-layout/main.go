@@ -27,9 +27,6 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
-//go:generate go tool oapi-codegen -config openapi-cfg.yaml ../../resources/openapi.yml
-//go:generate go tool gospecpaths --package rest --output ../../internal/api/rest/paths.gen.go ../../resources/openapi.yml
-//go:generate sqlc generate -f ../../sqlc.yml
 func main() {
 	err := run()
 	if err != nil {

@@ -1,4 +1,3 @@
-// Package rest contains REST API implementation.
 package rest
 
 import (
@@ -37,34 +36,42 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userService users.Service) {
 			if errors.As(err, &validationErr) {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/problem+json")
+
 				resp := func() ValidationError {
 					var target ValidationError
+
 					_ = errors.As(err, &target)
 
 					return target
 				}().ErrorResponse(span.SpanContext().TraceID().String())
+
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
 					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
 
 					return
 				}
+
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write(bytes)
 
 				return
 			}
+
 			var invalidParamError *InvalidParamFormatError
 			if errors.As(err, &invalidParamError) {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/problem+json")
+
 				resp := invalidParamError.ErrorResponse(span.SpanContext().TraceID().String())
+
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
 					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
 
 					return
 				}
+
 				_, _ = w.Write(bytes)
 
 				return
@@ -83,13 +90,16 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userService users.Service) {
 			var invalidParamError *InvalidParamFormatError
 			if errors.As(err, &invalidParamError) {
 				w.WriteHeader(http.StatusBadRequest)
+
 				resp := invalidParamError.ErrorResponse(span.SpanContext().TraceID().String())
+
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
 					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
 
 					return
 				}
+
 				_, _ = w.Write(bytes)
 			}
 		},

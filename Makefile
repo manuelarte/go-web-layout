@@ -44,6 +44,7 @@ format-code: tidy ## Format go code and run the fixer, alias: fmt
 .PHONY: fmt format-code
 
 lint:
+	keep-sorted ./.golangci.yml
 	golangci-lint run --fix ./...
 	spectral lint .\resources\openapi.yml
 	buf lint
