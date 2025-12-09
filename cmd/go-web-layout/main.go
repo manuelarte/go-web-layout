@@ -156,7 +156,7 @@ func run() error {
 	case err = <-srvErr:
 		return fmt.Errorf("server error: %w", err)
 	case <-ctx.Done():
-		// Wait for first CTRL+C.
+		// Wait for the first CTRL+C.
 		// Stop receiving signal notifications as soon as possible.
 	}
 
