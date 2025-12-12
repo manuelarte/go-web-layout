@@ -93,6 +93,14 @@ paths:
             format: uuid
           required: true
           description: User id
+        - name: fields
+          in: query
+          description: Select fields
+          required: false
+          example: id,username
+          schema:
+            type: string
+            format: fields
       responses:
         "200":
           description: Successful response.
@@ -139,6 +147,14 @@ paths:
             minimum: 1
             default: 20
             maximum: 50
+        - name: fields
+          in: query
+          description: Select fields
+          required: false
+          example: id,username
+          schema:
+            type: string
+            format: fields
       responses:
         "200":
           description: Successful response.
@@ -388,10 +404,6 @@ components:
       required:
         - self
         - kind
-        - id
-        - createdAt
-        - updatedAt
-        - username
       properties:
         self:
           type: string
