@@ -5,4 +5,4 @@ generate:
   chi-server: true
   models: true
   strict-server: true
-output: ../../internal/api/rest/gen.go
+output: ./internal/api/rest/gen.go
