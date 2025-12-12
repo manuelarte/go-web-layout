@@ -4,6 +4,20 @@ package rest
 
 import "strings"
 
+type ActuatorsHealthEndpoint struct{}
+
+func (p ActuatorsHealthEndpoint) Path() string {
+	message := "/actuators/health"
+	return message
+}
+
+type ActuatorsInfoEndpoint struct{}
+
+func (p ActuatorsInfoEndpoint) Path() string {
+	message := "/actuators/info"
+	return message
+}
+
 type GetUsersEndpoint struct{}
 
 func (p GetUsersEndpoint) Path() string {
@@ -19,23 +33,9 @@ func (p GetUserEndpoint) Path(userId string) string {
 	return message
 }
 
-type ActuatorsInfoEndpoint struct{}
-
-func (p ActuatorsInfoEndpoint) Path() string {
-	message := "/actuators/info"
-	return message
-}
-
-type ActuatorsHealthEndpoint struct{}
-
-func (p ActuatorsHealthEndpoint) Path() string {
-	message := "/actuators/health"
-	return message
-}
-
 type Paths struct {
-	GetUsersEndpoint        GetUsersEndpoint
-	GetUserEndpoint         GetUserEndpoint
-	ActuatorsInfoEndpoint   ActuatorsInfoEndpoint
 	ActuatorsHealthEndpoint ActuatorsHealthEndpoint
+	ActuatorsInfoEndpoint   ActuatorsInfoEndpoint
+	GetUserEndpoint         GetUserEndpoint
+	GetUsersEndpoint        GetUsersEndpoint
 }

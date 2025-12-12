@@ -51,7 +51,7 @@ require (
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/manuelarte/gospecpaths v0.0.0-20250924203351-b0df6db6b6c7 // indirect
+	github.com/manuelarte/gospecpaths v0.0.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/pb33f/jsonpath v0.1.2 // indirect
-	github.com/pb33f/libopenapi v0.28.0 // indirect
+	github.com/pb33f/libopenapi v0.28.2 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.0 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
-	github.com/urfave/cli/v3 v3.4.1 // indirect
+	github.com/urfave/cli/v3 v3.6.1 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/woodsbury/decimal128 v1.3.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
