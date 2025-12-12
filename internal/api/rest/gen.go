@@ -170,10 +170,10 @@ type RequestMetadata struct {
 // User defines model for User.
 type User struct {
 	// CreatedAt Creation date of the user
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
 
 	// Id Id of the user
-	Id openapi_types.UUID `json:"id"`
+	Id *openapi_types.UUID `json:"id,omitempty"`
 
 	// Kind Kind of the response
 	Kind Kind `json:"kind"`
@@ -182,10 +182,10 @@ type User struct {
 	Self string `json:"self"`
 
 	// UpdatedAt Last update date of the user
-	UpdatedAt time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 
 	// Username Username of the user
-	Username users.Username `json:"username"`
+	Username *users.Username `json:"username,omitempty"`
 }
 
 // GetUsersParams defines parameters for GetUsers.
@@ -195,6 +195,15 @@ type GetUsersParams struct {
 
 	// Size Page size
 	Size *int32 `form:"size,omitempty" json:"size,omitempty"`
+
+	// Fields Select fields
+	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
+}
+
+// GetUserParams defines parameters for GetUser.
+type GetUserParams struct {
+	// Fields Select fields
+	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
@@ -210,7 +219,7 @@ type ServerInterface interface {
 	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
 	// Get User By ID Endpoint
 	// (GET /api/v1/users/{userId})
-	GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
+	GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID, params GetUserParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -237,7 +246,7 @@ func (_ Unimplemented) GetUsers(w http.ResponseWriter, r *http.Request, params G
 
 // Get User By ID Endpoint
 // (GET /api/v1/users/{userId})
-func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID, params GetUserParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -302,6 +311,14 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// ------------- Optional query parameter "fields" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "fields", r.URL.Query(), &params.Fields)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetUsers(w, r, params)
 	}))
@@ -327,8 +344,19 @@ func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserParams
+
+	// ------------- Optional query parameter "fields" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "fields", r.URL.Query(), &params.Fields)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetUser(w, r, userId)
+		siw.Handler.GetUser(w, r, userId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -581,6 +609,7 @@ func (response GetUsers500ApplicationProblemPlusJSONResponse) VisitGetUsersRespo
 
 type GetUserRequestObject struct {
 	UserId openapi_types.UUID `json:"userId"`
+	Params GetUserParams
 }
 
 type GetUserResponseObject interface {
@@ -737,10 +766,11 @@ func (sh *strictHandler) GetUsers(w http.ResponseWriter, r *http.Request, params
 }
 
 // GetUser operation middleware
-func (sh *strictHandler) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+func (sh *strictHandler) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID, params GetUserParams) {
 	var request GetUserRequestObject
 
 	request.UserId = userId
+	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		return sh.ssi.GetUser(ctx, request.(GetUserRequestObject))

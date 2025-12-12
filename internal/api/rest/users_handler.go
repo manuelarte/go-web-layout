@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/golaxo/gofieldselect"
 	"github.com/google/uuid"
 	"github.com/manuelarte/ptrutils"
 	"github.com/samber/lo"
@@ -35,10 +36,18 @@ func NewUsersHandler(cfg config.AppEnv, service users.Service) UsersHandler {
 func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error) {
 	ctx, span := tracing.StartSpan(
 		ctx,
-		"Service.GetAll",
+		"UsersHandler.GetUser",
 		oteltrace.WithAttributes(attribute.String("id", request.UserId.String())),
 	)
 	defer span.End()
+
+	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	if err != nil {
+		return nil, &InvalidParamFormatError{
+			ParamName: "fields",
+			Err:       err,
+		}
+	}
 
 	user, err := h.service.GetByID(ctx, request.UserId)
 	if err != nil {
@@ -58,14 +67,28 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
-	return GetUser200JSONResponse(transformUserDaoToDto(user)), nil
+	return GetUser200JSONResponse(transformUserDaoToDto(fieldNode, user)), nil
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
-	//nolint:errcheck // requestID is added by a middleware
+	ctx, span := tracing.StartSpan(
+		ctx,
+		"UsersHandler.GetUsers",
+	)
+	defer span.End()
+
+	//nolint:errcheck // requestID is added by middleware
 	requestID := ctx.Value(middleware.RequestIDKey).(string)
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
+
+	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	if err != nil {
+		return nil, &InvalidParamFormatError{
+			ParamName: "fields",
+			Err:       err,
+		}
+	}
 
 	pr, err := pagination.NewPageRequest(int(page), int(size))
 	if err != nil {
@@ -111,7 +134,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 
 	return GetUsers200JSONResponse{
 		Kind:    KindPage,
-		Content: transformUserDaosToDtos(pageUsers.Content()),
+		Content: transformUserDaosToDtos(fieldNode, pageUsers.Content()),
 		Page: Page{
 			Number:        page,
 			Size:          size,
@@ -133,19 +156,19 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}, nil
 }
 
-func transformUserDaosToDtos(daos []users.User) []User {
+func transformUserDaosToDtos(fieldNode gofieldselect.Node, daos []users.User) []User {
 	return lo.Map(daos, func(dao users.User, _ int) User {
-		return transformUserDaoToDto(dao)
+		return transformUserDaoToDto(fieldNode, dao)
 	})
 }
 
-func transformUserDaoToDto(dao users.User) User {
+func transformUserDaoToDto(fieldNode gofieldselect.Node, dao users.User) User {
 	return User{
 		Self:      Paths{}.GetUserEndpoint.Path(dao.ID.String()),
 		Kind:      KindUser,
-		Id:        uuid.UUID(dao.ID),
-		CreatedAt: dao.CreatedAt,
-		UpdatedAt: dao.UpdatedAt,
-		Username:  dao.Username,
+		Id:        gofieldselect.Get(fieldNode, "id", ptrutils.Ptr(uuid.UUID(dao.ID))),
+		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", ptrutils.Ptr(dao.CreatedAt)),
+		UpdatedAt: gofieldselect.Get(fieldNode, "updatedAt", ptrutils.Ptr(dao.UpdatedAt)),
+		Username:  gofieldselect.Get(fieldNode, "username", ptrutils.Ptr(dao.Username)),
 	}
 }

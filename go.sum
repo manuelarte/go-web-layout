@@ -85,6 +85,10 @@ github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaS
 github.com/golang/protobuf v1.5.2/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
+github.com/golaxo/gofieldselect v0.0.1 h1:KYe1+/s8Pr+HVZDhJo61mvD/VhVpAyAotkVAJdeKfQk=
+github.com/golaxo/gofieldselect v0.0.1/go.mod h1:uFMsT8xrbO9EUtCW68J5F11UVA/rfwtEVehEMCmYZYM=
+github.com/golaxo/gofieldselect v0.0.2 h1:+3dkIc1YCL1OmqD7cQc3HzeMSYNVc/B1eV/4/jhEk58=
+github.com/golaxo/gofieldselect v0.0.2/go.mod h1:uFMsT8xrbO9EUtCW68J5F11UVA/rfwtEVehEMCmYZYM=
 github.com/google/cel-go v0.26.1 h1:iPbVVEdkhTX++hpe3lzSk7D3G3QSYqLGoHOcEio+UXQ=
 github.com/google/cel-go v0.26.1/go.mod h1:A9O8OU9rdvrK5MQyrqfIxo1a0u4g3sF8KB6PUIaryMM=
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
