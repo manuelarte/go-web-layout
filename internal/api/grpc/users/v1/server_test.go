@@ -80,7 +80,7 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 			// Arrange
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
-			usersService := users.NewMockService(ctrl)
+			usersService := users.NewMockRepository(ctrl)
 			listener := setup(t, ctx, NewServer(usersService))
 
 			resolver.SetDefaultScheme("passthrough")
@@ -134,7 +134,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			// Arrange
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
-			usersService := users.NewMockService(ctrl)
+			usersService := users.NewMockRepository(ctrl)
 			listener := setup(t, ctx, NewServer(usersService))
 
 			resolver.SetDefaultScheme("passthrough")
@@ -155,10 +155,11 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 				UpdatedAt: time.Time{},
 				Username:  users.Username(test.request.GetUsername()),
 			}
-			usersService.EXPECT().Create(gomock.Any(), users.NewUser{
-				Username: users.Username(test.request.GetUsername()),
-				Password: users.Password(test.request.GetPassword()),
-			}).Return(userCreated, nil)
+			usersService.EXPECT().Create(
+				gomock.Any(),
+				gomock.Eq(users.Username(test.request.GetUsername())),
+				gomock.Eq(users.Password(test.request.GetPassword())),
+			).Return(userCreated, nil)
 
 			// Act
 			resp, err := client.CreateUser(ctx, test.request)

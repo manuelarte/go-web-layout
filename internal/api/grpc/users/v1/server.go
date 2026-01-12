@@ -17,21 +17,23 @@ import (
 type Server struct {
 	UnimplementedUsersServiceServer
 
-	userService users.Service
+	userRepository users.Repository
 }
 
-func NewServer(userService users.Service) Server {
+func NewServer(userRepository users.Repository) Server {
 	return Server{
-		userService: userService,
+		userRepository: userRepository,
 	}
 }
 
 // CreateUser creates a new user.
 func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*CreateUserResponse, error) {
-	user, err := s.userService.Create(ctx, users.NewUser{
-		Username: users.Username(request.GetUsername()),
-		Password: users.Password(request.GetPassword()),
-	})
+	user, err := users.NewUser(
+		ctx,
+		users.Username(request.GetUsername()),
+		users.Password(request.GetPassword()),
+		s.userRepository,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
