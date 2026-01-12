@@ -24,7 +24,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 	tests := map[string]struct {
 		id               string
 		expected         ErrorResponse
-		expectedMockCall func(id string, ms *users.MockService)
+		expectedMockCall func(id string, ms *users.MockRepository)
 	}{
 		"not valid uuid": {
 			id: "1",
@@ -35,7 +35,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 				Status:   http.StatusBadRequest,
 				Instance: "00000000000000000000000000000000",
 			},
-			expectedMockCall: func(id string, ms *users.MockService) {
+			expectedMockCall: func(id string, ms *users.MockRepository) {
 			},
 		},
 		"not existing user": {
@@ -47,7 +47,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 				Status:   http.StatusNotFound,
 				Instance: "00000000000000000000000000000000",
 			},
-			expectedMockCall: func(id string, ms *users.MockService) {
+			expectedMockCall: func(id string, ms *users.MockRepository) {
 				ms.EXPECT().GetByID(gomock.Any(), gomock.Eq(uuid.MustParse(id))).Return(users.User{}, sql.ErrNoRows)
 			},
 		},
@@ -59,7 +59,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			// Arrange
 			cfg := config.AppEnv{}
 			r := chi.NewRouter()
-			userService := users.NewMockService(gomock.NewController(t))
+			userService := users.NewMockRepository(gomock.NewController(t))
 			CreateRestAPI(r, cfg, userService)
 
 			w := httptest.NewRecorder()

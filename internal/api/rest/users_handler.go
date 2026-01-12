@@ -23,10 +23,10 @@ import (
 
 type UsersHandler struct {
 	cfg     config.AppEnv
-	service users.Service
+	service users.Repository
 }
 
-func NewUsersHandler(cfg config.AppEnv, service users.Service) UsersHandler {
+func NewUsersHandler(cfg config.AppEnv, service users.Repository) UsersHandler {
 	return UsersHandler{
 		cfg:     cfg,
 		service: service,

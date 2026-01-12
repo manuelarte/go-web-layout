@@ -19,11 +19,12 @@ import (
 
 var _ Repository = new(repository)
 
+//go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
 	// Repository interface with the user's repository methods.
 	Repository interface {
 		// Create creates a new user.
-		Create(context.Context, NewUser) (User, error)
+		Create(context.Context, Username, Password) (User, error)
 		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 		// GetByID gets a user by its ID.
@@ -43,18 +44,18 @@ func NewRepository(db *sql.DB) Repository {
 	}
 }
 
-func (r repository) Create(ctx context.Context, user NewUser) (User, error) {
+func (r repository) Create(ctx context.Context, u Username, p Password) (User, error) {
 	ctx, span := tracing.StartSpan(ctx, "Service.Create")
 	defer span.End()
 
-	hashedPassword, err := hashPassword(user.Password)
+	hashedPassword, err := hashPassword(p)
 	if err != nil {
 		return User{}, fmt.Errorf("error hashing password: %w", err)
 	}
 
 	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
 		ID:       uuid.New(),
-		Username: string(user.Username),
+		Username: string(u),
 		Password: hashedPassword,
 	})
 	if err != nil {

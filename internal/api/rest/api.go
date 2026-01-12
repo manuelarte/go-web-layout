@@ -23,9 +23,9 @@ type API struct {
 	UsersHandler
 }
 
-func CreateRestAPI(r chi.Router, cfg config.AppEnv, userService users.Service) {
+func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Repository) {
 	api := API{
-		UsersHandler: NewUsersHandler(cfg, userService),
+		UsersHandler: NewUsersHandler(cfg, userRepository),
 	}
 	ssi := NewStrictHandlerWithOptions(api, nil, StrictHTTPServerOptions{
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {

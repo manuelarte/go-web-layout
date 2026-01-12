@@ -55,7 +55,6 @@ func run() error {
 	}
 
 	userRepo := users.NewRepository(db)
-	userService := users.NewService(userRepo)
 
 	// telemetry
 	tp, err := tracing.InitTracerProvider()
@@ -101,7 +100,7 @@ func run() error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, cfg, userService)
+	rest.CreateRestAPI(r, cfg, userRepo)
 
 	srvErr := make(chan error, 1)
 
@@ -144,7 +143,7 @@ func run() error {
 	)
 
 	s := grpc.NewServer(so)
-	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userService))
+	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
 	log.Printf("Starting gRPC server on port %s", lis.Addr())
 
 	go func() {

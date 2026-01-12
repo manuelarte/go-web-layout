@@ -1,7 +1,9 @@
 package users
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,12 +25,6 @@ type (
 		Username  Username
 	}
 
-	// NewUser model to represent a new user.
-	NewUser struct {
-		Username Username
-		Password Password
-	}
-
 	UserID uuid.UUID
 
 	Username string
@@ -36,8 +32,22 @@ type (
 	Password string
 )
 
-func (u *NewUser) IsValid() error {
-	return errors.Join(u.Username.IsValid(), u.Password.IsValid())
+// NewUser creates a new user.
+func NewUser(ctx context.Context, u Username, p Password, r Repository) (User, error) {
+	if err := u.IsValid(); err != nil {
+		return User{}, err
+	}
+
+	if err := p.IsValid(); err != nil {
+		return User{}, err
+	}
+
+	user, err := r.Create(ctx, u, p)
+	if err != nil {
+		return User{}, fmt.Errorf("error creating user: %w", err)
+	}
+
+	return user, nil
 }
 
 func (id UserID) String() string {
