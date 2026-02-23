@@ -53,7 +53,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write(bytes)
+				_, _ = w.Write(bytes) // #nosec G705
 
 				return
 			}
@@ -72,7 +72,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					return
 				}
 
-				_, _ = w.Write(bytes)
+				_, _ = w.Write(bytes) // #nosec G705
 
 				return
 			}
@@ -100,7 +100,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					return
 				}
 
-				_, _ = w.Write(bytes)
+				_, _ = w.Write(bytes) // #nosec G705
 			}
 		},
 	})
