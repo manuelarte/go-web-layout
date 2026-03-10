@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/manuelarte/ptrutils"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -41,7 +40,7 @@ func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*Cr
 	log.Info().Msgf("User created: %q", user.ID)
 
 	return &CreateUserResponse{
-		User: ptrutils.Ptr(transformUser(user)),
+		User: new(transformUser(user)),
 	}, nil
 }
 

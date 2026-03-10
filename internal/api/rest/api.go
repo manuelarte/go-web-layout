@@ -87,8 +87,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 			w.Header().Set("Content-Type", "application/problem+json")
 
-			var invalidParamError *InvalidParamFormatError
-			if errors.As(err, &invalidParamError) {
+			if invalidParamError, ok := errors.AsType[*InvalidParamFormatError](err); ok {
 				w.WriteHeader(http.StatusBadRequest)
 
 				resp := invalidParamError.ErrorResponse(span.SpanContext().TraceID().String())

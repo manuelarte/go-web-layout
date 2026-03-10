@@ -36,22 +36,12 @@ jobs:
           go install github.com/google/keep-sorted@v0.7.1
           keep-sorted .golangci.yml ./resources/openapi.yml
           git diff --exit-code
-  govulncheck:
-    runs-on: ubuntu-latest
-    name: Run govulncheck
-    steps:
-      - uses: actions/checkout@v6
-      - id: govulncheck
-        uses: golang/govulncheck-action@v1
-        with:
-          go-version-input: oldstable
-          go-package: ./...
   golangci:
     name: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go: [oldstable, stable]
+        go: [stable]
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6

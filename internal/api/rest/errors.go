@@ -3,8 +3,6 @@ package rest
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/manuelarte/ptrutils"
 )
 
 var _ error = new(ValidationError)
@@ -42,7 +40,7 @@ func (v ValidationError) ErrorResponse(traceID string) ErrorResponse {
 		Title:    "Validation Error",
 		Detail:   "Validation Error",
 		Status:   http.StatusBadRequest,
-		Errors:   ptrutils.Ptr(errors),
+		Errors:   new(errors),
 		Instance: traceID,
 	}
 }

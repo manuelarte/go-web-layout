@@ -166,9 +166,9 @@ func transformUserDaoToDto(fieldNode gofieldselect.Node, dao users.User) User {
 	return User{
 		Self:      Paths{}.GetUserEndpoint.Path(dao.ID.String()),
 		Kind:      KindUser,
-		Id:        gofieldselect.Get(fieldNode, "id", ptrutils.Ptr(uuid.UUID(dao.ID))),
-		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", ptrutils.Ptr(dao.CreatedAt)),
-		UpdatedAt: gofieldselect.Get(fieldNode, "updatedAt", ptrutils.Ptr(dao.UpdatedAt)),
-		Username:  gofieldselect.Get(fieldNode, "username", ptrutils.Ptr(dao.Username)),
+		Id:        gofieldselect.Get(fieldNode, "id", new(uuid.UUID(dao.ID))),
+		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", new(dao.CreatedAt)),
+		UpdatedAt: gofieldselect.Get(fieldNode, "updatedAt", new(dao.UpdatedAt)),
+		Username:  gofieldselect.Get(fieldNode, "username", new(dao.Username)),
 	}
 }
