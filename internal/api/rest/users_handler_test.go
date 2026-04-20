@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,7 +61,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			cfg := config.AppEnv{}
 			r := chi.NewRouter()
 			userService := users.NewMockRepository(gomock.NewController(t))
-			CreateRestAPI(r, cfg, userService)
+			CreateRestAPI(r, cfg, userService, slog.Default())
 
 			w := httptest.NewRecorder()
 			url := fmt.Sprintf("/api/v1/users/%s", test.id)

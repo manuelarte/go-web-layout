@@ -4,8 +4,8 @@ package usersv1
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,11 +17,14 @@ type Server struct {
 	UnimplementedUsersServiceServer
 
 	userRepository users.Repository
+
+	logger *slog.Logger
 }
 
-func NewServer(userRepository users.Repository) Server {
+func NewServer(userRepository users.Repository, logger *slog.Logger) Server {
 	return Server{
 		userRepository: userRepository,
+		logger:         logger,
 	}
 }
 
@@ -37,7 +40,7 @@ func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*Cr
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	log.Info().Msgf("User created: %q", user.ID)
+	s.logger.InfoContext(ctx, "User created", slog.Any("userID", user.ID))
 
 	return &CreateUserResponse{
 		User: new(transformUser(user)),

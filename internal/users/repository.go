@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -34,13 +34,17 @@ type (
 	repository struct {
 		db      *sql.DB
 		queries *sqlc.Queries
+
+		logger *slog.Logger
 	}
 )
 
-func NewRepository(db *sql.DB) Repository {
+func NewRepository(db *sql.DB, logger *slog.Logger) Repository {
 	return repository{
 		db:      db,
 		queries: sqlc.New(db),
+
+		logger: logger,
 	}
 }
 
@@ -80,7 +84,7 @@ func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 	defer func(tx *sql.Tx) {
 		errRollback := tx.Rollback()
 		if errRollback != nil {
-			log.Info().Err(errRollback).Msg("Failed to rollback transaction")
+			r.logger.Error("Failed to rollback transaction", slog.Any("err", errRollback))
 		}
 	}(tx)
 

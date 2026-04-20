@@ -15,7 +15,6 @@ require (
 	github.com/oapi-codegen/runtime v1.4.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/riandyrn/otelchi v0.12.2
-	github.com/rs/zerolog v1.35.0
 	github.com/samber/lo v1.53.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.68.0
@@ -69,6 +68,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
+	github.com/rs/zerolog v1.35.0 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/urfave/cli/v3 v3.6.1 // indirect

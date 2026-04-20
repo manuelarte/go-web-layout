@@ -2,6 +2,7 @@ package usersv1
 
 import (
 	"context"
+	"log/slog"
 	"net"
 	"strings"
 	"testing"
@@ -27,50 +28,50 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		request     *CreateUserRequest
-		expectedErr string
+		request *CreateUserRequest
+		wantErr string
 	}{
 		"username and password are empty": {
 			request: &CreateUserRequest{
 				Username: "",
 				Password: "",
 			},
-			expectedErr: "username: value is required",
+			wantErr: "username: value is required",
 		},
 		"username not sent": {
 			request: &CreateUserRequest{
 				Username: "",
 				Password: "MyPassword",
 			},
-			expectedErr: "username: value is required",
+			wantErr: "username: value is required",
 		},
 		"username is too long": {
 			request: &CreateUserRequest{
 				Username: strings.Repeat("a", 600),
 				Password: "MyPassword",
 			},
-			expectedErr: "username: value length must be at most 32 characters",
+			wantErr: "username: must be at most 32 characters",
 		},
 		"password not present": {
 			request: &CreateUserRequest{
 				Username: "MyUsername",
 				Password: "",
 			},
-			expectedErr: "password: value is required",
+			wantErr: "password: value is required",
 		},
 		"password too short": {
 			request: &CreateUserRequest{
 				Username: "MyUsername",
 				Password: "a",
 			},
-			expectedErr: "password: value length must be at least 8 characters",
+			wantErr: "password: must be at least 8 characters",
 		},
 		"password too long": {
 			request: &CreateUserRequest{
 				Username: "MyUsername",
 				Password: strings.Repeat("a", 600),
 			},
-			expectedErr: "password: value length must be at most 64 characters",
+			wantErr: "password: must be at most 64 characters",
 		},
 	}
 	for name, test := range tests {
@@ -81,7 +82,7 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
 			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService))
+			listener := setup(t, ctx, NewServer(usersService, slog.Default()))
 
 			resolver.SetDefaultScheme("passthrough")
 
@@ -98,7 +99,7 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 			_, err := client.CreateUser(ctx, test.request)
 
 			// Assert
-			require.ErrorContains(t, err, test.expectedErr)
+			require.ErrorContains(t, err, test.wantErr)
 		})
 	}
 }
@@ -135,7 +136,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
 			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService))
+			listener := setup(t, ctx, NewServer(usersService, slog.Default()))
 
 			resolver.SetDefaultScheme("passthrough")
 

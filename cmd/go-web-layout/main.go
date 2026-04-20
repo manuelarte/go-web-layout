@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
-	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc"
@@ -28,14 +28,16 @@ import (
 )
 
 func main() {
-	err := run()
+	logger := slog.Default()
+
+	err := run(logger)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to run server")
+		logger.Error("Failed to run server", "error", err)
 	}
 }
 
 //nolint:funlen // refactor later
-func run() error {
+func run(logger *slog.Logger) error {
 	ctx := context.Background()
 
 	db, err := config.Migrate()
@@ -45,7 +47,7 @@ func run() error {
 	defer func(db *sql.DB) {
 		errClose := db.Close()
 		if errClose != nil {
-			log.Error().Err(errClose).Msg("Failed to close database")
+			logger.Error("Failed to close database", slog.Any("error", errClose))
 		}
 	}(db)
 
@@ -54,7 +56,7 @@ func run() error {
 		return err
 	}
 
-	userRepo := users.NewRepository(db)
+	userRepo := users.NewRepository(db, logger)
 
 	// telemetry
 	tp, err := tracing.InitTracerProvider()
@@ -65,7 +67,7 @@ func run() error {
 	defer func() {
 		errShutdown := tp.Shutdown(context.Background())
 		if errShutdown != nil {
-			log.Printf("Error shutting down tracer provider: %v", errShutdown)
+			logger.Error("Failed to shutdown tracer provider", slog.Any("error", errShutdown))
 		}
 	}()
 	// set global tracer provider & text propagators
@@ -100,7 +102,7 @@ func run() error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, cfg, userRepo)
+	rest.CreateRestAPI(r, cfg, userRepo, logger)
 
 	srvErr := make(chan error, 1)
 
@@ -113,7 +115,7 @@ func run() error {
 		},
 	}
 
-	log.Printf("Starting Web server on port %s", srv.Addr)
+	logger.Info("Starting Web server", slog.String("addr", srv.Addr))
 
 	go func() {
 		srvErr <- srv.ListenAndServe()
@@ -143,8 +145,8 @@ func run() error {
 	)
 
 	s := grpc.NewServer(so)
-	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
-	log.Printf("Starting gRPC server on port %s", lis.Addr())
+	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo, logger))
+	logger.Info("Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
 		srvErr <- s.Serve(lis)
