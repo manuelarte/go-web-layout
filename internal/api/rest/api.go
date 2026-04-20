@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog/log"
 
 	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
@@ -67,7 +66,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}
@@ -94,7 +93,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}
