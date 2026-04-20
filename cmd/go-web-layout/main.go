@@ -12,6 +12,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/otel"
@@ -23,6 +24,7 @@ import (
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
@@ -56,7 +58,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	userRepo := users.NewRepository(db, logger)
+	userRepo := users.NewRepository(db)
 
 	// telemetry
 	tp, err := tracing.InitTracerProvider()
@@ -92,6 +94,7 @@ func run(logger *slog.Logger) error {
 	//nolint:mnd // guess
 	headerTimeout := 4 * time.Second
 	r.Use(
+		logging.Middleware(logger),
 		middleware.Logger,
 		otelchi.Middleware("go-web-layout", otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
@@ -102,7 +105,7 @@ func run(logger *slog.Logger) error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, cfg, userRepo, logger)
+	rest.CreateRestAPI(r, cfg, userRepo)
 
 	srvErr := make(chan error, 1)
 
@@ -144,8 +147,21 @@ func run(logger *slog.Logger) error {
 	},
 	)
 
-	s := grpc.NewServer(so)
-	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo, logger))
+	opts := []interceptorlogging.Option{
+		interceptorlogging.WithLogOnEvents(interceptorlogging.StartCall, interceptorlogging.FinishCall),
+	}
+
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), opts...),
+			logging.UnaryServerInterceptor(logger),
+		),
+		grpc.ChainStreamInterceptor(
+			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
+		),
+		so,
+	)
+	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
 	logger.Info("Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {

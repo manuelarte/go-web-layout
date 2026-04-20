@@ -12,6 +12,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
@@ -34,17 +35,13 @@ type (
 	repository struct {
 		db      *sql.DB
 		queries *sqlc.Queries
-
-		logger *slog.Logger
 	}
 )
 
-func NewRepository(db *sql.DB, logger *slog.Logger) Repository {
+func NewRepository(db *sql.DB) Repository {
 	return repository{
 		db:      db,
 		queries: sqlc.New(db),
-
-		logger: logger,
 	}
 }
 
@@ -84,7 +81,7 @@ func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 	defer func(tx *sql.Tx) {
 		errRollback := tx.Rollback()
 		if errRollback != nil {
-			r.logger.Error("Failed to rollback transaction", slog.Any("err", errRollback))
+			logging.FromContext(ctx).Error("Failed to rollback transaction", slog.Any("err", errRollback))
 		}
 	}(tx)
 

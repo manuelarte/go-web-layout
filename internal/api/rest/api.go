@@ -13,6 +13,7 @@ import (
 
 	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
@@ -24,7 +25,7 @@ type API struct {
 	UsersHandler
 }
 
-func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Repository, logger *slog.Logger) {
+func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Repository) {
 	api := API{
 		UsersHandler: NewUsersHandler(cfg, userRepository),
 	}
@@ -47,7 +48,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					logger.Error("Failed to marshal error response", slog.Any("err", errMarshal))
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}

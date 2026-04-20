@@ -2,7 +2,6 @@ package usersv1
 
 import (
 	"context"
-	"log/slog"
 	"net"
 	"strings"
 	"testing"
@@ -82,7 +81,7 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
 			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService, slog.Default()))
+			listener := setup(t, ctx, NewServer(usersService))
 
 			resolver.SetDefaultScheme("passthrough")
 
@@ -136,7 +135,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
 			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService, slog.Default()))
+			listener := setup(t, ctx, NewServer(usersService))
 
 			resolver.SetDefaultScheme("passthrough")
 

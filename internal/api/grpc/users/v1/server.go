@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -17,14 +18,11 @@ type Server struct {
 	UnimplementedUsersServiceServer
 
 	userRepository users.Repository
-
-	logger *slog.Logger
 }
 
-func NewServer(userRepository users.Repository, logger *slog.Logger) Server {
+func NewServer(userRepository users.Repository) Server {
 	return Server{
 		userRepository: userRepository,
-		logger:         logger,
 	}
 }
 
@@ -40,7 +38,7 @@ func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*Cr
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	s.logger.InfoContext(ctx, "User created", slog.Any("userID", user.ID))
+	logging.FromContext(ctx).InfoContext(ctx, "User created", slog.Any("userID", user.ID))
 
 	return &CreateUserResponse{
 		User: new(transformUser(user)),

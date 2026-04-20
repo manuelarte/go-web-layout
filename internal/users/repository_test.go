@@ -1,7 +1,6 @@
 package users
 
 import (
-	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,7 +33,7 @@ func TestRepository_GetAll_Successful(t *testing.T) {
 			db, err := config.Migrate()
 			require.NoError(t, err)
 
-			r := NewRepository(db, slog.Default())
+			r := NewRepository(db)
 			pr := pagination.MustPageRequest(0, 10)
 
 			// Act
