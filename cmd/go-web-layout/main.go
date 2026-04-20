@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -11,9 +12,9 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
-	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc"
@@ -23,19 +24,22 @@ import (
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 func main() {
-	err := run()
+	logger := slog.Default()
+
+	err := run(logger)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to run server")
+		logger.Error("Failed to run server", "error", err)
 	}
 }
 
 //nolint:funlen // refactor later
-func run() error {
+func run(logger *slog.Logger) error {
 	ctx := context.Background()
 
 	db, err := config.Migrate()
@@ -45,7 +49,7 @@ func run() error {
 	defer func(db *sql.DB) {
 		errClose := db.Close()
 		if errClose != nil {
-			log.Error().Err(errClose).Msg("Failed to close database")
+			logger.Error("Failed to close database", slog.Any("error", errClose))
 		}
 	}(db)
 
@@ -65,7 +69,7 @@ func run() error {
 	defer func() {
 		errShutdown := tp.Shutdown(context.Background())
 		if errShutdown != nil {
-			log.Printf("Error shutting down tracer provider: %v", errShutdown)
+			logger.Error("Failed to shutdown tracer provider", slog.Any("error", errShutdown))
 		}
 	}()
 	// set global tracer provider & text propagators
@@ -90,6 +94,7 @@ func run() error {
 	//nolint:mnd // guess
 	headerTimeout := 4 * time.Second
 	r.Use(
+		logging.Middleware(logger),
 		middleware.Logger,
 		otelchi.Middleware("go-web-layout", otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
@@ -113,7 +118,7 @@ func run() error {
 		},
 	}
 
-	log.Printf("Starting Web server on port %s", srv.Addr)
+	logger.Info("Starting Web server", slog.String("addr", srv.Addr))
 
 	go func() {
 		srvErr <- srv.ListenAndServe()
@@ -142,9 +147,22 @@ func run() error {
 	},
 	)
 
-	s := grpc.NewServer(so)
+	opts := []interceptorlogging.Option{
+		interceptorlogging.WithLogOnEvents(interceptorlogging.StartCall, interceptorlogging.FinishCall),
+	}
+
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), opts...),
+			logging.UnaryServerInterceptor(logger),
+		),
+		grpc.ChainStreamInterceptor(
+			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
+		),
+		so,
+	)
 	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
-	log.Printf("Starting gRPC server on port %s", lis.Addr())
+	logger.Info("Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
 		srvErr <- s.Serve(lis)

@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
@@ -80,7 +81,7 @@ func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 	defer func(tx *sql.Tx) {
 		errRollback := tx.Rollback()
 		if errRollback != nil {
-			log.Info().Err(errRollback).Msg("Failed to rollback transaction")
+			logging.FromContext(ctx).Error("Failed to rollback transaction", slog.Any("err", errRollback))
 		}
 	}(tx)
 

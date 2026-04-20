@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rs/zerolog/log"
 
 	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
@@ -32,8 +33,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 			_, span := tracing.StartSpan(r.Context(), "ResponseErrorHandlerFunc")
 			defer span.End()
 
-			var validationErr ValidationError
-			if errors.As(err, &validationErr) {
+			if _, ok := errors.AsType[ValidationError](err); ok {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/problem+json")
 
@@ -47,7 +47,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}
@@ -58,8 +58,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 				return
 			}
 
-			var invalidParamError *InvalidParamFormatError
-			if errors.As(err, &invalidParamError) {
+			if invalidParamError, ok := errors.AsType[*InvalidParamFormatError](err); ok {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/problem+json")
 
@@ -67,7 +66,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}
@@ -94,7 +93,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					log.Error().Err(errMarshal).Msg("Failed to marshal error response")
+					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
 
 					return
 				}

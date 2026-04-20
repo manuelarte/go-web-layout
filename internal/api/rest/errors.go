@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 var _ error = new(ValidationError)
@@ -12,15 +13,16 @@ type ValidationError struct {
 }
 
 func (v ValidationError) Error() string {
-	msg := ""
+	var msg strings.Builder
 	for key, errs := range v.errors {
-		msg += key + ": "
+		msg.WriteString(key + ": ")
+
 		for _, err := range errs {
-			return msg + err.Error()
+			return msg.String() + err.Error()
 		}
 	}
 
-	return msg
+	return msg.String()
 }
 
 func (v ValidationError) ErrorResponse(traceID string) ErrorResponse {
