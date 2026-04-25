@@ -7,6 +7,10 @@ A production-ready template for Go web applications featuring modern tooling and
 
 ## 🚀 Key features
 
+### Build Tool
+
+This project is using [mage](https://magefile.org/) to run the tasks.
+
 ### 🛢 Database layer
 
 - **Migrations**:
@@ -58,11 +62,11 @@ The file [.spectral.yaml](.spectral.yaml) contains its configuration.
 Run the project by:
 
 ```bash
-go run ./cmd/go-web-layout/.
+mage run
 ```
 
 Or you can run it with docker using:
 
 ```bash
-make dr
+mage dockerrun
 ```
