@@ -49,7 +49,7 @@ func run(logger *slog.Logger) error {
 	defer func(db *sql.DB) {
 		errClose := db.Close()
 		if errClose != nil {
-			logger.Error("Failed to close database", slog.Any("error", errClose))
+			logger.ErrorContext(ctx, "Failed to close database", slog.Any("error", errClose))
 		}
 	}(db)
 
@@ -67,9 +67,9 @@ func run(logger *slog.Logger) error {
 	}
 
 	defer func() {
-		errShutdown := tp.Shutdown(context.Background())
+		errShutdown := tp.Shutdown(ctx)
 		if errShutdown != nil {
-			logger.Error("Failed to shutdown tracer provider", slog.Any("error", errShutdown))
+			logger.ErrorContext(ctx, "Failed to shutdown tracer provider", slog.Any("error", errShutdown))
 		}
 	}()
 	// set global tracer provider & text propagators
@@ -118,7 +118,7 @@ func run(logger *slog.Logger) error {
 		},
 	}
 
-	logger.Info("Starting Web server", slog.String("addr", srv.Addr))
+	logger.InfoContext(ctx, "Starting Web server", slog.String("addr", srv.Addr))
 
 	go func() {
 		srvErr <- srv.ListenAndServe()
@@ -162,7 +162,7 @@ func run(logger *slog.Logger) error {
 		so,
 	)
 	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
-	logger.Info("Starting gRPC server", slog.Any("addr", lis.Addr()))
+	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
 		srvErr <- s.Serve(lis)
