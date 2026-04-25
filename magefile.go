@@ -229,11 +229,12 @@ func Tools() error {
 	}
 
 	toInstall := []string{
-		"github.com/bufbuild/buf/cmd/buf@v1.56.0",
+		//keep-sorted start
+		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
 		"github.com/google/keep-sorted@v0.7.1",
 		"github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
 		"go.uber.org/mock/mockgen@latest",
-		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
+		//keep-sorted end
 	}
 	for _, tool := range toInstall {
 		cmd := exec.Command("go", "install", tool)
