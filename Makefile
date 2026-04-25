@@ -32,6 +32,10 @@ build: ## Build
 	./cmd/go-web-layout/.
 .PHONY: build
 
+r: run
+run: build ## Run
+	@./go-web-layout
+
 t: test
 test: ## Run unit tests, alias: t
 	go test --cover -timeout=300s -parallel=16 ./...

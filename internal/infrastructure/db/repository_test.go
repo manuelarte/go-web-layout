@@ -1,4 +1,4 @@
-package users
+package db
 
 import (
 	"testing"
@@ -8,20 +8,21 @@ import (
 
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
+	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
-func TestRepository_GetAll_Successful(t *testing.T) {
+func TestRepositoryGetAllSuccessful(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		migrate     []User
+		migrate     []users.User
 		pageRequest pagination.PageRequest
-		expected    func(migrated []User, pr pagination.PageRequest) (expected pagination.Page[User])
+		expected    func(migrated []users.User, pr pagination.PageRequest) (expected pagination.Page[users.User])
 	}{
 		"empty": {
 			pageRequest: pagination.MustPageRequest(0, 20),
-			expected: func(migrated []User, pr pagination.PageRequest) pagination.Page[User] {
-				return pagination.MustPage[User](nil, pr, 1)
+			expected: func(migrated []users.User, pr pagination.PageRequest) pagination.Page[users.User] {
+				return pagination.MustPage[users.User](nil, pr, 1)
 			},
 		},
 	}
