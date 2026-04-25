@@ -2,23 +2,11 @@ package users
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/samber/lo"
-	"go.opentelemetry.io/otel/attribute"
-	oteltrace "go.opentelemetry.io/otel/trace"
-	"golang.org/x/crypto/bcrypt"
 
-	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
-	"github.com/manuelarte/go-web-layout/internal/sqlc"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
 )
-
-var _ Repository = new(repository)
 
 //go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
@@ -31,115 +19,4 @@ type (
 		// GetByID gets a user by its ID.
 		GetByID(context.Context, uuid.UUID) (User, error)
 	}
-
-	repository struct {
-		db      *sql.DB
-		queries *sqlc.Queries
-	}
 )
-
-func NewRepository(db *sql.DB) Repository {
-	return repository{
-		db:      db,
-		queries: sqlc.New(db),
-	}
-}
-
-func (r repository) Create(ctx context.Context, u Username, p Password) (User, error) {
-	ctx, span := tracing.StartSpan(ctx, "Service.Create")
-	defer span.End()
-
-	hashedPassword, err := hashPassword(p)
-	if err != nil {
-		return User{}, fmt.Errorf("error hashing password: %w", err)
-	}
-
-	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
-		ID:       uuid.New(),
-		Username: string(u),
-		Password: hashedPassword,
-	})
-	if err != nil {
-		return User{}, fmt.Errorf("error creating user: %w", err)
-	}
-
-	return transformModel(created), nil
-}
-
-func (r repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[User], error) {
-	ctx, span := tracing.StartSpan(
-		ctx,
-		"Repository.GetAll",
-		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
-	)
-	defer span.End()
-
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return pagination.Page[User]{}, fmt.Errorf("error starting transaction: %w", err)
-	}
-	defer func(tx *sql.Tx) {
-		errRollback := tx.Rollback()
-		if errRollback != nil {
-			logging.FromContext(ctx).Error("Failed to rollback transaction", slog.Any("err", errRollback))
-		}
-	}(tx)
-
-	uDao, err := r.queries.WithTx(tx).GetUsers(
-		ctx,
-		sqlc.GetUsersParams{
-			Limit:  int64(pr.Size()),
-			Offset: int64(pr.Offset()),
-		},
-	)
-	if err != nil {
-		return pagination.Page[User]{}, fmt.Errorf("error getting users: %w", err)
-	}
-
-	count, err := r.queries.WithTx(tx).CountUsers(ctx)
-	if err != nil {
-		return pagination.Page[User]{}, fmt.Errorf("error counting users: %w", err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return pagination.Page[User]{}, fmt.Errorf("error committing transaction: %w", err)
-	}
-
-	users := lo.Map(uDao, func(item sqlc.User, index int) User {
-		return transformModel(item)
-	})
-
-	return pagination.MustPage(users, pr, count), nil
-}
-
-func (r repository) GetByID(ctx context.Context, id uuid.UUID) (User, error) {
-	ctx, span := tracing.StartSpan(
-		ctx,
-		"Repository.GetByID",
-		oteltrace.WithAttributes(attribute.String("id", id.String())),
-	)
-	defer span.End()
-
-	dao, err := r.queries.GetUserByID(ctx, id)
-	if err != nil {
-		return User{}, fmt.Errorf("error getting user by id: %w", err)
-	}
-
-	return transformModel(dao), nil
-}
-
-func transformModel(user sqlc.User) User {
-	return User{
-		ID:        UserID(user.ID),
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Username:  Username(user.Username),
-	}
-}
-
-func hashPassword(password Password) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-
-	return string(bytes), err
-}

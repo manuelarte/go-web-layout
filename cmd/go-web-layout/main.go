@@ -24,9 +24,9 @@ import (
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
-	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 func main() {
@@ -42,25 +42,24 @@ func main() {
 func run(logger *slog.Logger) error {
 	ctx := context.Background()
 
-	db, err := config.Migrate()
+	dbConn, err := config.Migrate()
 	if err != nil {
 		return fmt.Errorf("failed to migrate the database: %w", err)
 	}
-	defer func(db *sql.DB) {
-		errClose := db.Close()
+	defer func(dbConn *sql.DB) {
+		errClose := dbConn.Close()
 		if errClose != nil {
 			logger.ErrorContext(ctx, "Failed to close database", slog.Any("error", errClose))
 		}
-	}(db)
+	}(dbConn)
 
 	cfg, err := env.ParseAs[config.AppEnv]()
 	if err != nil {
 		return err
 	}
 
-	userRepo := users.NewRepository(db)
+	userRepo := db.NewRepository(dbConn)
 
-	// telemetry
 	tp, err := tracing.InitTracerProvider()
 	if err != nil {
 		return fmt.Errorf("failed to initialize tracer provider: %w", err)
