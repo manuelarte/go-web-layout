@@ -24,6 +24,6 @@ func AddToContext(logger *slog.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		return handler(NewContext(ctx, logger), req)
+		return handler(withLogger(ctx, logger), req)
 	}
 }
