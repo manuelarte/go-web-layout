@@ -26,10 +26,12 @@ import (
 
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/info"
-	usersv2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
+	grpc2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc"
+	usersv1 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	loggingCfg "github.com/manuelarte/go-web-layout/internal/logging"
+	"github.com/manuelarte/go-web-layout/internal/logging/wideevents"
 	"github.com/manuelarte/go-web-layout/internal/observability"
 )
 
@@ -130,12 +132,13 @@ func run() error {
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 			loggingCfg.AddToContext(logger),
+			wideevents.AddCreateUserWideEvent(),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 		),
 	)
-	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))
+	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(userRepo))
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
