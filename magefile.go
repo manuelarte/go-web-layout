@@ -22,6 +22,7 @@ import (
 const (
 	AppName = "GoWebLayout"
 	Pkg     = "github.com/manuelarte/go-web-layout"
+	InfoPkg = Pkg + "/internal/info"
 )
 
 type LdFlags struct {
@@ -40,11 +41,18 @@ func Build() error {
 		return err
 	}
 
-	ldFlagsStr := fmt.Sprintf("-X %s.Branch=%s -X %s.BuildTime=%s -X %s.CommitID=%s -X %s.Version=%s",
-		Pkg, ldFlags.Branch, Pkg, ldFlags.BuildTime, Pkg, ldFlags.CommitID, Pkg, ldFlags.Version,
+	ldflagsArg := fmt.Sprintf(
+		"-X %s.Branch=%s -X %s.BuildTime=%s -X %s.CommitID=%s -X %s.Version=%s",
+		InfoPkg, ldFlags.Branch, InfoPkg, ldFlags.BuildTime, InfoPkg, ldFlags.CommitID, InfoPkg, ldFlags.Version,
 	)
 
-	cmd := exec.Command("go", "build", "-ldflags", ldFlagsStr, "-o", AppName, "./cmd/go-web-layout/.")
+	cmd := exec.Command(
+		"go",
+		"build",
+		"-ldflags", ldflagsArg,
+		"-o", AppName,
+		"./cmd/go-web-layout/.",
+	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -83,13 +91,16 @@ func DockerBuild() error {
 		return err
 	}
 
-	cmd := exec.Command("docker", "build",
+	cmd := exec.Command(
+		"docker",
+		"build",
 		"--build-arg", "BRANCH="+ldFlags.Branch,
 		"--build-arg", "BUILD_TIME="+ldFlags.BuildTime,
 		"--build-arg", "COMMIT_ID="+ldFlags.CommitID,
 		"--build-arg", "APP_VERSION=Docker"+ldFlags.Version,
 		"-t", Pkg,
-		".")
+		".",
+	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -247,6 +258,7 @@ func Tools() error {
 	toInstall := []string{
 		// keep-sorted start
 		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
+		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4",
 		"github.com/google/keep-sorted@v0.7.1",
 		"github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
 		"go.uber.org/mock/mockgen@latest",
