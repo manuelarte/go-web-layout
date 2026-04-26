@@ -16,14 +16,14 @@ func InterceptorLogger(l *slog.Logger) logging.Logger {
 	})
 }
 
-// UnaryServerInterceptor returns a gRPC unary server interceptor that injects the logger into the context.
-func UnaryServerInterceptor(logger *slog.Logger) grpc.UnaryServerInterceptor {
+// AddToContext returns a gRPC unary server interceptor that injects the logger into the context.
+func AddToContext(logger *slog.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		return handler(NewContext(ctx, logger), req)
+		return handler(withLogger(ctx, logger), req)
 	}
 }

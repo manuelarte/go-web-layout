@@ -17,7 +17,7 @@ func FromContext(ctx context.Context) *slog.Logger {
 	return slog.Default()
 }
 
-// NewContext returns a new context with the given logger attached.
-func NewContext(ctx context.Context, logger *slog.Logger) context.Context {
+// withLogger returns a new context with the given logger attached.
+func withLogger(ctx context.Context, logger *slog.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey{}, logger)
 }

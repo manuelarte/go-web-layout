@@ -1,4 +1,4 @@
-package usersv1
+package grpc
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -27,46 +28,46 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		request *CreateUserRequest
+		request *usersv1.CreateUserRequest
 		wantErr string
 	}{
 		"username and password are empty": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "",
 				Password: "",
 			},
 			wantErr: "username: value is required",
 		},
 		"username not sent": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "",
 				Password: "MyPassword",
 			},
 			wantErr: "username: value is required",
 		},
 		"username is too long": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: strings.Repeat("a", 600),
 				Password: "MyPassword",
 			},
 			wantErr: "username: must be at most 32 characters",
 		},
 		"password not present": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "MyUsername",
 				Password: "",
 			},
 			wantErr: "password: value is required",
 		},
 		"password too short": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "MyUsername",
 				Password: "a",
 			},
 			wantErr: "password: must be at least 8 characters",
 		},
 		"password too long": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "MyUsername",
 				Password: strings.Repeat("a", 600),
 			},
@@ -92,7 +93,7 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 
 			defer conn.Close()
 
-			client := NewUsersServiceClient(conn)
+			client := usersv1.NewUsersServiceClient(conn)
 
 			// Act
 			_, err := client.CreateUser(ctx, test.request)
@@ -107,17 +108,17 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		request  *CreateUserRequest
-		response func(userCreated users.User) *CreateUserResponse
+		request  *usersv1.CreateUserRequest
+		response func(userCreated users.User) *usersv1.CreateUserResponse
 	}{
 		"username and password are valid": {
-			request: &CreateUserRequest{
+			request: &usersv1.CreateUserRequest{
 				Username: "John",
 				Password: "12345678",
 			},
-			response: func(userCreated users.User) *CreateUserResponse {
-				return &CreateUserResponse{
-					User: &User{
+			response: func(userCreated users.User) *usersv1.CreateUserResponse {
+				return &usersv1.CreateUserResponse{
+					User: &usersv1.User{
 						Id:        userCreated.ID.String(),
 						CreatedAt: timestamppb.New(userCreated.CreatedAt),
 						UpdatedAt: timestamppb.New(userCreated.UpdatedAt),
@@ -146,7 +147,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 
 			defer conn.Close()
 
-			client := NewUsersServiceClient(conn)
+			client := usersv1.NewUsersServiceClient(conn)
 
 			// Assert mocks
 			userCreated := users.User{
@@ -171,7 +172,7 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 	}
 }
 
-func assertCreateUsersResponse(t *testing.T, resp, response *CreateUserResponse) {
+func assertCreateUsersResponse(t *testing.T, resp, response *usersv1.CreateUserResponse) {
 	t.Helper()
 
 	assert.Equal(t, resp.GetUser().GetId(), response.GetUser().GetId())
@@ -190,7 +191,7 @@ func setup(t *testing.T, ctx context.Context, server Server) *bufconn.Listener {
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.UnaryInterceptor(protovalidatemiddleware.UnaryServerInterceptor(validator)),
 	)
-	RegisterUsersServiceServer(grpcServer, server)
+	usersv1.RegisterUsersServiceServer(grpcServer, server)
 
 	errorGroup, ctx := errgroup.WithContext(ctx)
 
