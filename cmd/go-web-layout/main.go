@@ -30,7 +30,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/observability"
-	logging2 "github.com/manuelarte/go-web-layout/internal/observability/logging"
+	"github.com/manuelarte/go-web-layout/internal/observability/logging"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func run() error {
 	//nolint:mnd // guess
 	headerTimeout := 4 * time.Second
 	r.Use(
-		logging2.Middleware(logger),
+		logging.Middleware(logger),
 		middleware.Logger,
 		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
@@ -121,18 +121,14 @@ func run() error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	opts := []interceptorlogging.Option{
-		interceptorlogging.WithLogOnEvents(interceptorlogging.StartCall, interceptorlogging.FinishCall),
-	}
-
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
-			interceptorlogging.UnaryServerInterceptor(logging2.InterceptorLogger(logger), opts...),
-			logging2.UnaryServerInterceptor(logger),
+			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger)),
+			logging.UnaryServerInterceptor(logger),
 		),
 		grpc.ChainStreamInterceptor(
-			interceptorlogging.StreamServerInterceptor(logging2.InterceptorLogger(logger), opts...),
+			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger)),
 		),
 	)
 	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))

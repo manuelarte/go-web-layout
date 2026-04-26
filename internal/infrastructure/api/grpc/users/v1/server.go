@@ -50,7 +50,12 @@ func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*Cr
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	logging.FromContext(ctx).InfoContext(ctx, "User created", slog.Any("userID", user.ID))
+	logging.FromContext(ctx).InfoContext(
+		ctx,
+		"User created",
+		slog.String("username", string(user.Username)),
+		slog.String("userID", user.ID.String()),
+	)
 
 	return &CreateUserResponse{
 		User: new(transformUser(user)),
