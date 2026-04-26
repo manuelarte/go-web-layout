@@ -129,7 +129,7 @@ func run() error {
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
-			loggingCfg.UnaryServerInterceptor(logger),
+			loggingCfg.AddToContext(logger),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
