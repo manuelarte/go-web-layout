@@ -12,10 +12,10 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
 
+	sqlc2 "github.com/manuelarte/go-web-layout/internal/infrastructure/db/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
-	"github.com/manuelarte/go-web-layout/internal/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -23,13 +23,13 @@ var _ users.Repository = new(Repository)
 
 type Repository struct {
 	db      *sql.DB
-	queries *sqlc.Queries
+	queries *sqlc2.Queries
 }
 
 func NewRepository(db *sql.DB) Repository {
 	return Repository{
 		db:      db,
-		queries: sqlc.New(db),
+		queries: sqlc2.New(db),
 	}
 }
 
@@ -49,7 +49,7 @@ func (r Repository) Create(ctx context.Context, u users.Username, p users.Passwo
 		return users.User{}, fmt.Errorf("error hashing password: %w", err)
 	}
 
-	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
+	created, err := r.queries.CreateUser(ctx, sqlc2.CreateUserParams{
 		ID:       uuid.New(),
 		Username: string(u),
 		Password: hashedPassword,
@@ -82,7 +82,7 @@ func (r Repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 
 	uDao, err := r.queries.WithTx(tx).GetUsers(
 		ctx,
-		sqlc.GetUsersParams{
+		sqlc2.GetUsersParams{
 			Limit:  int64(pr.Size()),
 			Offset: int64(pr.Offset()),
 		},
@@ -101,7 +101,7 @@ func (r Repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 		return pagination.Page[users.User]{}, fmt.Errorf("error committing transaction: %w", err)
 	}
 
-	users := lo.Map(uDao, func(item sqlc.User, index int) users.User {
+	users := lo.Map(uDao, func(item sqlc2.User, index int) users.User {
 		return transformModel(item)
 	})
 
@@ -124,7 +124,7 @@ func (r Repository) GetByID(ctx context.Context, id uuid.UUID) (users.User, erro
 	return transformModel(dao), nil
 }
 
-func transformModel(user sqlc.User) users.User {
+func transformModel(user sqlc2.User) users.User {
 	return users.User{
 		ID:        users.UserID(user.ID),
 		CreatedAt: user.CreatedAt,
