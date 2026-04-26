@@ -150,6 +150,7 @@ linters:
           arguments:
             - ^[a-z][_a-z0-9]*.go$
         - name: var-naming
+        - name: redundant-import-alias
     sloglint:
       no-global: all
       context: scope
