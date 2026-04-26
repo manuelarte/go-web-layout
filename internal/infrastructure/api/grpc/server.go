@@ -51,6 +51,8 @@ func (s Server) CreateUser(
 		s.userRepository,
 	)
 	if err != nil {
+		wideevents.AddError(ctx, "db", err)
+
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 

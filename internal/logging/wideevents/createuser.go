@@ -110,3 +110,18 @@ func AddUserID(ctx context.Context, userID string) {
 
 	event.UserID = userID
 }
+
+func AddError(ctx context.Context, errType string, err error) {
+	event, ok := ctx.Value(createUserLogKey{}).(*createUserLogEvent)
+	if !ok {
+		return
+	}
+
+	event.mu.Lock()
+	defer event.mu.Unlock()
+
+	event.Error = createUserError{
+		Type:    errType,
+		Message: err.Error(),
+	}
+}
