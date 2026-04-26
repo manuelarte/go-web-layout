@@ -121,14 +121,18 @@ func run() error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
+	loggingOpts := []interceptorlogging.Option{
+		interceptorlogging.WithLogOnEvents(),
+	}
+
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
-			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger)),
+			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), loggingOpts...),
 			logging.UnaryServerInterceptor(logger),
 		),
 		grpc.ChainStreamInterceptor(
-			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger)),
+			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), loggingOpts...),
 		),
 	)
 	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))
