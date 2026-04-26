@@ -27,8 +27,8 @@ import (
 	usersv2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
-	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/observability"
+	logging2 "github.com/manuelarte/go-web-layout/internal/observability/logging"
 )
 
 func main() {
@@ -80,7 +80,7 @@ func run(logger *slog.Logger) error {
 	//nolint:mnd // guess
 	headerTimeout := 4 * time.Second
 	r.Use(
-		logging.Middleware(logger),
+		logging2.Middleware(logger),
 		middleware.Logger,
 		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
@@ -124,11 +124,11 @@ func run(logger *slog.Logger) error {
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
-			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), opts...),
-			logging.UnaryServerInterceptor(logger),
+			interceptorlogging.UnaryServerInterceptor(logging2.InterceptorLogger(logger), opts...),
+			logging2.UnaryServerInterceptor(logger),
 		),
 		grpc.ChainStreamInterceptor(
-			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
+			interceptorlogging.StreamServerInterceptor(logging2.InterceptorLogger(logger), opts...),
 		),
 	)
 	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))

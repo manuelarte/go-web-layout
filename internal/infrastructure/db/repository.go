@@ -13,8 +13,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	sqlc2 "github.com/manuelarte/go-web-layout/internal/infrastructure/db/sqlc"
-	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/observability/logging"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )

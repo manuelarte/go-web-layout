@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/observability/logging"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
