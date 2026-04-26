@@ -35,23 +35,14 @@ repos:
 
   - repo: local
     hooks:
-      - id: golangci-fmt
-        name: golangci-fmt
-        entry: golangci-lint fmt
-        language: system
-        pass_filenames: false
-
-      - id: golangci-lint
-        name: golangci-lint
-        entry: golangci-lint run --fix ./...
-        language: system
-        pass_filenames: false
+      - id: lint
+        name: lint
+        entry: mage lint
 
       - id: tests
         name: tests
-        entry: make test
+        entry: mage test
         language: system
-        pass_filenames: false
         always_run: true
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
