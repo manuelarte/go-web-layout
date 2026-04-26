@@ -17,7 +17,6 @@ import (
 
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -34,7 +33,7 @@ func NewUsersHandler(cfg config.AppEnv, service users.Repository) UsersHandler {
 }
 
 func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error) {
-	ctx, span := tracing.StartSpan(
+	ctx, span := observability.StartSpan(
 		ctx,
 		"UsersHandler.GetUser",
 		oteltrace.WithAttributes(attribute.String("id", request.UserId.String())),
@@ -71,7 +70,7 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
-	ctx, span := tracing.StartSpan(
+	ctx, span := observability.StartSpan(
 		ctx,
 		"UsersHandler.GetUsers",
 	)

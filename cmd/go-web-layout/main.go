@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -23,13 +24,12 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
 
-	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
-	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/info"
+	usersv2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
+	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
 )
 
 func main() {
@@ -107,7 +107,7 @@ func run(logger *slog.Logger) error {
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
 		BaseContext: func(net.Listener) context.Context {
-			return tracing.AddContext(ctx, tracer)
+			return observability.AddContext(ctx, tracer)
 		},
 	}
 
@@ -138,7 +138,7 @@ func run(logger *slog.Logger) error {
 			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
 		),
 	)
-	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
+	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
@@ -203,7 +203,7 @@ func setupOTelSDK(
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	tp, err := tracing.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, hostname)
+	tp, err := observability.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, hostname)
 	if err != nil {
 		handleErr(err)
 
@@ -213,7 +213,7 @@ func setupOTelSDK(
 	shutdownFuncs[0] = tp.Shutdown
 	otel.SetTracerProvider(tp)
 
-	mp, err := tracing.InitMeter()
+	mp, err := observability.InitMeterProvider()
 	if err != nil {
 		handleErr(err)
 

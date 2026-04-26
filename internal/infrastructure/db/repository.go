@@ -15,7 +15,6 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -34,7 +33,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r Repository) Create(ctx context.Context, u users.Username, p users.Password) (users.User, error) {
-	ctx, span := tracing.StartSpan(ctx, "Repository.Create")
+	ctx, span := observability.StartSpan(ctx, "Repository.Create")
 	defer span.End()
 
 	span.SetAttributes(
@@ -62,7 +61,7 @@ func (r Repository) Create(ctx context.Context, u users.Username, p users.Passwo
 }
 
 func (r Repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagination.Page[users.User], error) {
-	ctx, span := tracing.StartSpan(
+	ctx, span := observability.StartSpan(
 		ctx,
 		"Repository.GetAll",
 		oteltrace.WithAttributes(attribute.Int("page", pr.Page()), attribute.Int("size", pr.Size())),
@@ -109,7 +108,7 @@ func (r Repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 }
 
 func (r Repository) GetByID(ctx context.Context, id uuid.UUID) (users.User, error) {
-	ctx, span := tracing.StartSpan(
+	ctx, span := observability.StartSpan(
 		ctx,
 		"Repository.GetByID",
 		oteltrace.WithAttributes(attribute.String("id", id.String())),

@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -30,7 +29,7 @@ func NewServer(userRepository users.Repository) Server {
 
 // CreateUser creates a new user.
 func (s Server) CreateUser(ctx context.Context, request *CreateUserRequest) (*CreateUserResponse, error) {
-	ctx, span := tracing.StartSpan(ctx, "Server.CreateUser")
+	ctx, span := observability.StartSpan(ctx, "Server.CreateUser")
 	defer span.End()
 
 	span.SetAttributes(
