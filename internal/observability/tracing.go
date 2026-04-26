@@ -10,7 +10,7 @@ import (
 )
 
 // InitTracerProvider initializes the tracer provider.
-func InitTracerProvider(ctx context.Context, exporterURL string, hostname string) (*sdktrace.TracerProvider, error) {
+func InitTracerProvider(ctx context.Context, exporterURL, hostname string) (*sdktrace.TracerProvider, error) {
 	var (
 		exporter sdktrace.SpanExporter
 		err      error

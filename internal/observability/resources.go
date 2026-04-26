@@ -9,6 +9,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/info"
 )
 
+//nolint:wrapcheck // will be wrapped by the caller
 func createResource(ctx context.Context, hostname string) (*resource.Resource, error) {
 	return resource.New(
 		ctx,

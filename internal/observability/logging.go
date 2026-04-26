@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/log"
 )
 
-func InitLoggingProvider(ctx context.Context, exporterURL string) (*log.LoggerProvider, error) {
+func InitLoggingProvider(ctx context.Context, exporterURL, hostname string) (*log.LoggerProvider, error) {
 	var (
 		exporter log.Exporter
 		err      error
@@ -23,12 +23,20 @@ func InitLoggingProvider(ctx context.Context, exporterURL string) (*log.LoggerPr
 			otlploggrpc.WithInsecure(),
 		)
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize exporter: %w", err)
 	}
 
+	res, err := createResource(ctx, hostname)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+
 	loggerProvider := log.NewLoggerProvider(
 		log.WithProcessor(log.NewBatchProcessor(exporter)),
+		log.WithResource(res),
 	)
+
 	return loggerProvider, nil
 }

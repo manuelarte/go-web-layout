@@ -10,7 +10,7 @@ import (
 )
 
 // InitMeterProvider initializes the meter provider.
-func InitMeterProvider(ctx context.Context, exporterURL string) (*sdkmetric.MeterProvider, error) {
+func InitMeterProvider(ctx context.Context, exporterURL, hostname string) (*sdkmetric.MeterProvider, error) {
 	var (
 		exporter sdkmetric.Exporter
 		err      error
@@ -24,11 +24,18 @@ func InitMeterProvider(ctx context.Context, exporterURL string) (*sdkmetric.Mete
 			otlpmetricgrpc.WithInsecure(),
 		)
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize exporter: %w", err)
 	}
 
+	res, err := createResource(ctx, hostname)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+
 	return sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter)),
+		sdkmetric.WithResource(res),
 	), nil
 }

@@ -10,16 +10,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
 
@@ -33,16 +34,34 @@ import (
 )
 
 func main() {
-	logger := slog.Default()
-
-	err := run(logger)
+	err := run()
 	if err != nil {
-		logger.Error("Failed to run server", "error", err)
+		//nolint:sloglint // only logging in default this error
+		slog.Error("Failed to run server", "error", err)
 	}
 }
 
-func run(logger *slog.Logger) error {
+func run() error {
 	ctx := context.Background()
+
+	cfg, err := config.GetAppEnv()
+	if err != nil {
+		return fmt.Errorf("failed to get app env: %w", err)
+	}
+
+	tracer := otel.Tracer(info.AppName)
+
+	otelShutdown, mp, lp, err := setupOTelSDK(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("error setting open telemetry: %w", err)
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
+	// Create a bridged slog logger
+	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp))
 
 	dbConn, err := config.Migrate()
 	if err != nil {
@@ -55,23 +74,7 @@ func run(logger *slog.Logger) error {
 		}
 	}(dbConn)
 
-	cfg, err := env.ParseAs[config.AppEnv]()
-	if err != nil {
-		return err
-	}
-
 	userRepo := db.NewRepository(dbConn)
-
-	tracer := otel.Tracer(info.AppName)
-
-	otelShutdown, mp, err := setupOTelSDK(ctx, cfg)
-	if err != nil {
-		return fmt.Errorf("error setting open telemetry: %w", err)
-	}
-
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	// define base config for metric middlewares
 	baseCfg := otelchimetric.NewBaseConfig(info.AppName, otelchimetric.WithMeterProvider(mp))
@@ -168,7 +171,7 @@ func newPropagator() propagation.TextMapPropagator {
 func setupOTelSDK(
 	ctx context.Context,
 	cfg config.AppEnv,
-) (func(context.Context) error, *sdkmetric.MeterProvider, error) {
+) (func(context.Context) error, *sdkmetric.MeterProvider, *log.LoggerProvider, error) {
 	shutdownFuncs := make([]func(context.Context) error, 3)
 
 	var err error
@@ -178,8 +181,11 @@ func setupOTelSDK(
 	// Each registered cleanup will be invoked once.
 	shutdown := func(ctx context.Context) error {
 		var shutdownErr error
+
 		for _, fn := range shutdownFuncs {
-			shutdownErr = errors.Join(shutdownErr, fn(ctx))
+			if fn != nil {
+				shutdownErr = errors.Join(shutdownErr, fn(ctx))
+			}
 		}
 
 		shutdownFuncs = nil
@@ -200,31 +206,31 @@ func setupOTelSDK(
 	if err != nil {
 		handleErr(err)
 
-		return shutdown, nil, fmt.Errorf("error initializing trace provider: %w", err)
+		return shutdown, nil, nil, fmt.Errorf("error initializing trace provider: %w", err)
 	}
 
 	shutdownFuncs[0] = tp.Shutdown
 	otel.SetTracerProvider(tp)
 
-	mp, err := observability.InitMeterProvider(ctx, cfg.OtelExporterEndpoint)
+	mp, err := observability.InitMeterProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
 	if err != nil {
 		handleErr(err)
 
-		return shutdown, nil, fmt.Errorf("failed to initialize meter provider: %w", err)
+		return shutdown, nil, nil, fmt.Errorf("failed to initialize meter provider: %w", err)
 	}
 
 	shutdownFuncs[1] = mp.Shutdown
 	otel.SetMeterProvider(mp)
 
-	loggerProvider, err := observability.InitLoggingProvider(ctx, cfg.OtelExporterEndpoint)
+	loggerProvider, err := observability.InitLoggingProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
 	if err != nil {
 		handleErr(err)
 
-		return shutdown, nil, err
+		return shutdown, nil, nil, fmt.Errorf("failed to initialize logger provider: %w", err)
 	}
 
 	shutdownFuncs[2] = loggerProvider.Shutdown
 	global.SetLoggerProvider(loggerProvider)
 
-	return shutdown, mp, nil
+	return shutdown, mp, loggerProvider, nil
 }
