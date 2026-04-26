@@ -27,6 +27,10 @@ type (
 	}
 )
 
+func (we *createUserLogEvent) isSuccessful() bool {
+	return !we.isError()
+}
+
 func (we *createUserLogEvent) isError() bool {
 	we.mu.RLock()
 	defer we.mu.RUnlock()
@@ -65,16 +69,16 @@ func AddCreateUserWideEvent() grpc.UnaryServerInterceptor {
 
 		toReturnAny, toReturnErr := handler(ctx, req)
 
-		if event.isError() {
-			logging.FromContext(ctx).ErrorContext(
-				ctx,
-				"Error creating user",
-				event.mapToArgs()...,
-			)
-		} else {
+		if event.isSuccessful() {
 			logging.FromContext(ctx).InfoContext(
 				ctx,
 				"User created",
+				event.mapToArgs()...,
+			)
+		} else {
+			logging.FromContext(ctx).ErrorContext(
+				ctx,
+				"Error creating user",
 				event.mapToArgs()...,
 			)
 		}
