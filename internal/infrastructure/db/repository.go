@@ -34,7 +34,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r Repository) Create(ctx context.Context, u users.Username, p users.Password) (users.User, error) {
-	ctx, span := tracing.StartSpan(ctx, "Service.Create")
+	ctx, span := tracing.StartSpan(ctx, "Repository.Create")
 	defer span.End()
 
 	hashedPassword, err := hashPassword(p)

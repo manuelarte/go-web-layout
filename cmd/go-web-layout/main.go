@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -18,6 +19,7 @@ import (
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
 	"google.golang.org/grpc/stats/opentelemetry"
@@ -67,22 +69,6 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("failed to get hostname: %w", err)
 	}
 
-	tp, err := tracing.InitTracerProvider(ctx, "", hostname)
-	if err != nil {
-		return fmt.Errorf("failed to initialize tracer provider: %w", err)
-	}
-
-	defer func() {
-		errShutdown := tp.Shutdown(ctx)
-		if errShutdown != nil {
-			logger.ErrorContext(ctx, "Failed to shutdown tracer provider", slog.Any("error", errShutdown))
-		}
-	}()
-	// set global tracer provider & text propagators
-	otel.SetTracerProvider(tp)
-
-	textMapPropagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
-	otel.SetTextMapPropagator(textMapPropagator)
 	// initialize tracer
 	tracer := otel.Tracer(info.AppName)
 	// initialize meter provider & set global meter provider
@@ -91,7 +77,15 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("failed to initialize meter provider: %w", err)
 	}
 
-	otel.SetMeterProvider(mp)
+	otelShutdown, prop, tp, err := setupOTelSDK(ctx, cfg, hostname)
+	if err != nil {
+		return fmt.Errorf("error setting open telemetry: %w", err)
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
 	// define base config for metric middlewares
 	baseCfg := otelchimetric.NewBaseConfig(info.AppName, otelchimetric.WithMeterProvider(mp))
 
@@ -149,7 +143,7 @@ func run(logger *slog.Logger) error {
 				"grpc.lb.pick_first.connection_attempts_failed",
 			),
 		},
-		TraceOptions: oteltracing.TraceOptions{TracerProvider: tp, TextMapPropagator: textMapPropagator},
+		TraceOptions: oteltracing.TraceOptions{TracerProvider: tp, TextMapPropagator: prop},
 	},
 	)
 
@@ -191,4 +185,56 @@ func run(logger *slog.Logger) error {
 	}
 
 	return nil
+}
+
+func newPropagator() propagation.TextMapPropagator {
+	return propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	)
+}
+
+func setupOTelSDK(
+	ctx context.Context,
+	cfg config.AppEnv,
+	hostname string,
+) (func(context.Context) error, propagation.TextMapPropagator, *sdktrace.TracerProvider, error) {
+	shutdownFuncs := make([]func(context.Context) error, 1)
+
+	var err error
+
+	// shutdown calls cleanup functions registered via shutdownFuncs.
+	// The errors from the calls are joined.
+	// Each registered cleanup will be invoked once.
+	shutdown := func(ctx context.Context) error {
+		var shutdownErr error
+		for _, fn := range shutdownFuncs {
+			shutdownErr = errors.Join(shutdownErr, fn(ctx))
+		}
+
+		shutdownFuncs = nil
+
+		return shutdownErr
+	}
+
+	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
+	handleErr := func(inErr error) {
+		err = errors.Join(inErr, shutdown(ctx))
+	}
+
+	// Set up propagator.
+	prop := newPropagator()
+	otel.SetTextMapPropagator(prop)
+
+	tp, err := tracing.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, hostname)
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, nil, fmt.Errorf("error initializing trace provider: %w", err)
+	}
+
+	shutdownFuncs[0] = tp.Shutdown
+	otel.SetTracerProvider(tp)
+
+	return shutdown, prop, tp, nil
 }

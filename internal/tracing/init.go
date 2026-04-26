@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -37,17 +37,15 @@ func InitTracerProvider(ctx context.Context, exporterURL, hostname string) (*sdk
 
 	if exporterURL == "" {
 		exporter, err = stdout.New(stdout.WithPrettyPrint())
-		if err != nil {
-			return nil, fmt.Errorf("failed to initialize exporter: %w", err)
-		}
 	} else {
-		exporter, err = otlptracehttp.New(ctx,
-			otlptracehttp.WithEndpoint(exporterURL),
-			otlptracehttp.WithInsecure(),
+		exporter, err = otlptracegrpc.New(ctx,
+			otlptracegrpc.WithEndpoint(exporterURL),
+			otlptracegrpc.WithInsecure(),
 		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to initialize exporter: %w", err)
-		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize exporter: %w", err)
 	}
 
 	res, err := resource.New(

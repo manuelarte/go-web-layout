@@ -38,6 +38,7 @@ repos:
       - id: lint
         name: lint
         entry: mage lint
+        language: system
 
       - id: tests
         name: tests
