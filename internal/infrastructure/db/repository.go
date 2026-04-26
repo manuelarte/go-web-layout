@@ -37,6 +37,13 @@ func (r Repository) Create(ctx context.Context, u users.Username, p users.Passwo
 	ctx, span := tracing.StartSpan(ctx, "Repository.Create")
 	defer span.End()
 
+	span.SetAttributes(
+		attribute.KeyValue{
+			Key:   "username",
+			Value: attribute.StringValue(string(u)),
+		},
+	)
+
 	hashedPassword, err := hashPassword(p)
 	if err != nil {
 		return users.User{}, fmt.Errorf("error hashing password: %w", err)

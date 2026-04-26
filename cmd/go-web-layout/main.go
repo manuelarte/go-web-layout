@@ -17,12 +17,11 @@ import (
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
-	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
-	"google.golang.org/grpc/stats/opentelemetry"
 
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
@@ -42,7 +41,6 @@ func main() {
 	}
 }
 
-//nolint:funlen // refactor later
 func run(logger *slog.Logger) error {
 	ctx := context.Background()
 
@@ -71,13 +69,8 @@ func run(logger *slog.Logger) error {
 
 	// initialize tracer
 	tracer := otel.Tracer(info.AppName)
-	// initialize meter provider & set global meter provider
-	mp, err := tracing.InitMeter()
-	if err != nil {
-		return fmt.Errorf("failed to initialize meter provider: %w", err)
-	}
 
-	otelShutdown, prop, tp, err := setupOTelSDK(ctx, cfg, hostname)
+	otelShutdown, mp, err := setupOTelSDK(ctx, cfg, hostname)
 	if err != nil {
 		return fmt.Errorf("error setting open telemetry: %w", err)
 	}
@@ -131,27 +124,12 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	so := opentelemetry.ServerOption(opentelemetry.Options{
-		MetricsOptions: opentelemetry.MetricsOptions{
-			MeterProvider: mp,
-			// These are example experimental gRPC metrics, which are disabled
-			// by default and must be explicitly enabled. For the full,
-			// up-to-date list of metrics, see:
-			// https://grpc.io/docs/guides/opentelemetry-metrics/#instruments
-			Metrics: opentelemetry.DefaultMetrics().Add(
-				"grpc.lb.pick_first.connection_attempts_succeeded",
-				"grpc.lb.pick_first.connection_attempts_failed",
-			),
-		},
-		TraceOptions: oteltracing.TraceOptions{TracerProvider: tp, TextMapPropagator: prop},
-	},
-	)
-
 	opts := []interceptorlogging.Option{
 		interceptorlogging.WithLogOnEvents(interceptorlogging.StartCall, interceptorlogging.FinishCall),
 	}
 
 	s := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), opts...),
 			logging.UnaryServerInterceptor(logger),
@@ -159,7 +137,6 @@ func run(logger *slog.Logger) error {
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
 		),
-		so,
 	)
 	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
@@ -198,8 +175,8 @@ func setupOTelSDK(
 	ctx context.Context,
 	cfg config.AppEnv,
 	hostname string,
-) (func(context.Context) error, propagation.TextMapPropagator, *sdktrace.TracerProvider, error) {
-	shutdownFuncs := make([]func(context.Context) error, 1)
+) (func(context.Context) error, *sdkmetric.MeterProvider, error) {
+	shutdownFuncs := make([]func(context.Context) error, 2)
 
 	var err error
 
@@ -230,11 +207,21 @@ func setupOTelSDK(
 	if err != nil {
 		handleErr(err)
 
-		return shutdown, nil, nil, fmt.Errorf("error initializing trace provider: %w", err)
+		return shutdown, nil, fmt.Errorf("error initializing trace provider: %w", err)
 	}
 
 	shutdownFuncs[0] = tp.Shutdown
 	otel.SetTracerProvider(tp)
 
-	return shutdown, prop, tp, nil
+	mp, err := tracing.InitMeter()
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, fmt.Errorf("failed to initialize meter provider: %w", err)
+	}
+
+	shutdownFuncs[1] = mp.Shutdown
+	otel.SetMeterProvider(mp)
+
+	return shutdown, mp, nil
 }

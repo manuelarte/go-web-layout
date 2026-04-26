@@ -19,7 +19,7 @@ import (
 )
 
 func InitMeter() (*sdkmetric.MeterProvider, error) {
-	exp, err := stdoutmetric.New()
+	exp, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
 	if err != nil {
 		return nil, fmt.Errorf("can't initialize metrics: %w", err)
 	}

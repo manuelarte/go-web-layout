@@ -25,5 +25,6 @@ go.work.sum
 .env
 
 .idea
+.run
 
-go-web-layout
+GoWebLayout
