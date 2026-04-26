@@ -18,6 +18,7 @@ import (
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
@@ -168,7 +169,7 @@ func setupOTelSDK(
 	ctx context.Context,
 	cfg config.AppEnv,
 ) (func(context.Context) error, *sdkmetric.MeterProvider, error) {
-	shutdownFuncs := make([]func(context.Context) error, 2)
+	shutdownFuncs := make([]func(context.Context) error, 3)
 
 	var err error
 
@@ -205,7 +206,7 @@ func setupOTelSDK(
 	shutdownFuncs[0] = tp.Shutdown
 	otel.SetTracerProvider(tp)
 
-	mp, err := observability.InitMeterProvider()
+	mp, err := observability.InitMeterProvider(cfg.OtelExporterEndpoint)
 	if err != nil {
 		handleErr(err)
 
@@ -214,6 +215,16 @@ func setupOTelSDK(
 
 	shutdownFuncs[1] = mp.Shutdown
 	otel.SetMeterProvider(mp)
+
+	loggerProvider, err := observability.InitLoggingProvider(cfg.OtelExporterEndpoint)
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, err
+	}
+
+	shutdownFuncs[2] = loggerProvider.Shutdown
+	global.SetLoggerProvider(loggerProvider)
 
 	return shutdown, mp, nil
 }
