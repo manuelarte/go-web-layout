@@ -174,6 +174,22 @@ func Lint() error {
 		return err
 	}
 
+	fmt.Println("Spectral lint")
+	cmd = exec.Command("spectral", "lint", "./resources/openapi.yml")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	fmt.Println("Running hadolint")
+	cmd = exec.Command("hadolint", "Dockerfile")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
 	fmt.Println("Linting complete")
 	return nil
 }
@@ -229,12 +245,12 @@ func Tools() error {
 	}
 
 	toInstall := []string{
-		//keep-sorted start
+		// keep-sorted start
 		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
 		"github.com/google/keep-sorted@v0.7.1",
 		"github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
 		"go.uber.org/mock/mockgen@latest",
-		//keep-sorted end
+		// keep-sorted end
 	}
 	for _, tool := range toInstall {
 		cmd := exec.Command("go", "install", tool)
