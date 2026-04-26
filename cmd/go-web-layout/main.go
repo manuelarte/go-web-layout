@@ -206,7 +206,7 @@ func setupOTelSDK(
 	shutdownFuncs[0] = tp.Shutdown
 	otel.SetTracerProvider(tp)
 
-	mp, err := observability.InitMeterProvider(cfg.OtelExporterEndpoint)
+	mp, err := observability.InitMeterProvider(ctx, cfg.OtelExporterEndpoint)
 	if err != nil {
 		handleErr(err)
 
@@ -216,7 +216,7 @@ func setupOTelSDK(
 	shutdownFuncs[1] = mp.Shutdown
 	otel.SetMeterProvider(mp)
 
-	loggerProvider, err := observability.InitLoggingProvider(cfg.OtelExporterEndpoint)
+	loggerProvider, err := observability.InitLoggingProvider(ctx, cfg.OtelExporterEndpoint)
 	if err != nil {
 		handleErr(err)
 
