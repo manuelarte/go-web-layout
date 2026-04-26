@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	usersv2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
+	usersv1 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 )
 
 func main() {
@@ -18,9 +18,9 @@ func main() {
 	}
 	defer grpcClient.Close()
 
-	client := usersv2.NewUsersServiceClient(grpcClient)
+	client := usersv1.NewUsersServiceClient(grpcClient)
 
-	request := usersv2.CreateUserRequest{
+	request := usersv1.CreateUserRequest{
 		Username: "other",
 		Password: "otherLongPassword",
 	}
