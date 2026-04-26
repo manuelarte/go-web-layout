@@ -14,7 +14,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/manuelarte/go-web-layout/internal/info"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/otel"
@@ -26,6 +25,7 @@ import (
 	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/info"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/tracing"
@@ -66,7 +66,8 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to get hostname: %w", err)
 	}
-	tp, err := tracing.InitTracerProvider(hostname)
+
+	tp, err := tracing.InitTracerProvider(ctx, "", hostname)
 	if err != nil {
 		return fmt.Errorf("failed to initialize tracer provider: %w", err)
 	}

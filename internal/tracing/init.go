@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/manuelarte/go-web-layout/internal/info"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -14,6 +14,8 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
+
+	"github.com/manuelarte/go-web-layout/internal/info"
 )
 
 func InitMeter() (*sdkmetric.MeterProvider, error) {
@@ -27,15 +29,29 @@ func InitMeter() (*sdkmetric.MeterProvider, error) {
 	), nil
 }
 
-func InitTracerProvider(hostname string) (*sdktrace.TracerProvider, error) {
-	// TODO(manuelarte): either stdout or collector
-	exporter, err := stdout.New(stdout.WithPrettyPrint())
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize exporter: %w", err)
+func InitTracerProvider(ctx context.Context, exporterURL, hostname string) (*sdktrace.TracerProvider, error) {
+	var (
+		exporter sdktrace.SpanExporter
+		err      error
+	)
+
+	if exporterURL == "" {
+		exporter, err = stdout.New(stdout.WithPrettyPrint())
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize exporter: %w", err)
+		}
+	} else {
+		exporter, err = otlptracehttp.New(ctx,
+			otlptracehttp.WithEndpoint(exporterURL),
+			otlptracehttp.WithInsecure(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize exporter: %w", err)
+		}
 	}
 
 	res, err := resource.New(
-		context.Background(),
+		ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String(info.AppName),
 			semconv.ServiceVersionKey.String(info.Version),

@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/manuelarte/go-web-layout/internal/info"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/manuelarte/go-web-layout/internal/info"
 )
 
 func TestActuatorsHandler_ActuatorsInfoRoute(t *testing.T) {
