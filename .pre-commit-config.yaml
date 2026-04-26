@@ -38,12 +38,15 @@ repos:
       - id: lint
         name: lint
         entry: mage lint
+        language: system
+        pass_filenames: false
 
       - id: tests
         name: tests
         entry: mage test
         language: system
         always_run: true
+        pass_filenames: false
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.23.0

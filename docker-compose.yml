@@ -1,0 +1,58 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.11.2
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./resources/observability/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:12.4.3
+    environment:
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_SIGNOUT_MENU: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./resources/observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+
+  tempo:
+    image: grafana/tempo:2.10.5
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./resources/observability/tempo.yml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"   # tempo
+
+  loki:
+    image: grafana/loki:3.7.1
+    container_name: loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - ./resources/observability/loki-config.yml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.149.0
+    volumes:
+      - ./resources/observability/otel-collector-config.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
+    ports:
+      - "4317:4317"   # OTLP over gRPC receiver
+      - "4318:4318"   # OTLP over HTTP receiver
+    depends_on:
+      - tempo
+      - loki
+    healthcheck:
+      test: ["CMD", "/usr/bin/curl", "-f", "http://localhost:13133"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

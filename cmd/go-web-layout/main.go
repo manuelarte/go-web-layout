@@ -3,44 +3,65 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
-	oteltracing "google.golang.org/grpc/experimental/opentelemetry"
-	"google.golang.org/grpc/stats/opentelemetry"
 
-	usersv1 "github.com/manuelarte/go-web-layout/internal/api/grpc/users/v1"
-	"github.com/manuelarte/go-web-layout/internal/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/info"
+	usersv2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
+	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
-	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
+	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/observability/logging"
 )
 
 func main() {
-	logger := slog.Default()
-
-	err := run(logger)
+	err := run()
 	if err != nil {
-		logger.Error("Failed to run server", "error", err)
+		//nolint:sloglint // only logging in default this error
+		slog.Error("Failed to run server", "error", err)
 	}
 }
 
-//nolint:funlen // refactor later
-func run(logger *slog.Logger) error {
+func run() error {
 	ctx := context.Background()
+
+	cfg, err := config.GetAppEnv()
+	if err != nil {
+		return fmt.Errorf("failed to get app env: %w", err)
+	}
+
+	tracer := otel.Tracer(info.AppName)
+
+	otelShutdown, mp, lp, err := setupOTelSDK(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("error setting open telemetry: %w", err)
+	}
+
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
+	// Create a bridged slog logger
+	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp))
 
 	dbConn, err := config.Migrate()
 	if err != nil {
@@ -53,40 +74,10 @@ func run(logger *slog.Logger) error {
 		}
 	}(dbConn)
 
-	cfg, err := env.ParseAs[config.AppEnv]()
-	if err != nil {
-		return err
-	}
-
 	userRepo := db.NewRepository(dbConn)
 
-	tp, err := tracing.InitTracerProvider()
-	if err != nil {
-		return fmt.Errorf("failed to initialize tracer provider: %w", err)
-	}
-
-	defer func() {
-		errShutdown := tp.Shutdown(ctx)
-		if errShutdown != nil {
-			logger.ErrorContext(ctx, "Failed to shutdown tracer provider", slog.Any("error", errShutdown))
-		}
-	}()
-	// set global tracer provider & text propagators
-	otel.SetTracerProvider(tp)
-
-	textMapPropagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
-	otel.SetTextMapPropagator(textMapPropagator)
-	// initialize tracer
-	tracer := otel.Tracer("go-web-layout")
-	// initialize meter provider & set global meter provider
-	mp, err := tracing.InitMeter()
-	if err != nil {
-		return fmt.Errorf("failed to initialize meter provider: %w", err)
-	}
-
-	otel.SetMeterProvider(mp)
 	// define base config for metric middlewares
-	baseCfg := otelchimetric.NewBaseConfig("go-web-layout", otelchimetric.WithMeterProvider(mp))
+	baseCfg := otelchimetric.NewBaseConfig(info.AppName, otelchimetric.WithMeterProvider(mp))
 
 	r := chi.NewRouter()
 
@@ -95,7 +86,7 @@ func run(logger *slog.Logger) error {
 	r.Use(
 		logging.Middleware(logger),
 		middleware.Logger,
-		otelchi.Middleware("go-web-layout", otelchi.WithChiRoutes(r)),
+		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
 		otelchimetric.NewRequestInFlight(baseCfg),
 		otelchimetric.NewResponseSizeBytes(baseCfg),
@@ -113,7 +104,7 @@ func run(logger *slog.Logger) error {
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
 		BaseContext: func(net.Listener) context.Context {
-			return context.WithValue(ctx, tracing.TracingContextKey, tracer)
+			return observability.AddContext(ctx, tracer)
 		},
 	}
 
@@ -130,37 +121,21 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	so := opentelemetry.ServerOption(opentelemetry.Options{
-		MetricsOptions: opentelemetry.MetricsOptions{
-			MeterProvider: mp,
-			// These are example experimental gRPC metrics, which are disabled
-			// by default and must be explicitly enabled. For the full,
-			// up-to-date list of metrics, see:
-			// https://grpc.io/docs/guides/opentelemetry-metrics/#instruments
-			Metrics: opentelemetry.DefaultMetrics().Add(
-				"grpc.lb.pick_first.connection_attempts_succeeded",
-				"grpc.lb.pick_first.connection_attempts_failed",
-			),
-		},
-		TraceOptions: oteltracing.TraceOptions{TracerProvider: tp, TextMapPropagator: textMapPropagator},
-	},
-	)
-
-	opts := []interceptorlogging.Option{
-		interceptorlogging.WithLogOnEvents(interceptorlogging.StartCall, interceptorlogging.FinishCall),
+	loggingOpts := []interceptorlogging.Option{
+		interceptorlogging.WithLogOnEvents(),
 	}
 
 	s := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
-			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), opts...),
+			interceptorlogging.UnaryServerInterceptor(logging.InterceptorLogger(logger), loggingOpts...),
 			logging.UnaryServerInterceptor(logger),
 		),
 		grpc.ChainStreamInterceptor(
-			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), opts...),
+			interceptorlogging.StreamServerInterceptor(logging.InterceptorLogger(logger), loggingOpts...),
 		),
-		so,
 	)
-	usersv1.RegisterUsersServiceServer(s, usersv1.NewServer(userRepo))
+	usersv2.RegisterUsersServiceServer(s, usersv2.NewServer(userRepo))
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {
@@ -184,4 +159,78 @@ func run(logger *slog.Logger) error {
 	}
 
 	return nil
+}
+
+func newPropagator() propagation.TextMapPropagator {
+	return propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	)
+}
+
+func setupOTelSDK(
+	ctx context.Context,
+	cfg config.AppEnv,
+) (func(context.Context) error, *sdkmetric.MeterProvider, *log.LoggerProvider, error) {
+	shutdownFuncs := make([]func(context.Context) error, 3)
+
+	var err error
+
+	// shutdown calls cleanup functions registered via shutdownFuncs.
+	// The errors from the calls are joined.
+	// Each registered cleanup will be invoked once.
+	shutdown := func(ctx context.Context) error {
+		var shutdownErr error
+
+		for _, fn := range shutdownFuncs {
+			if fn != nil {
+				shutdownErr = errors.Join(shutdownErr, fn(ctx))
+			}
+		}
+
+		shutdownFuncs = nil
+
+		return shutdownErr
+	}
+
+	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
+	handleErr := func(inErr error) {
+		err = errors.Join(inErr, shutdown(ctx))
+	}
+
+	// Set up propagator.
+	prop := newPropagator()
+	otel.SetTextMapPropagator(prop)
+
+	tp, err := observability.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, nil, fmt.Errorf("error initializing trace provider: %w", err)
+	}
+
+	shutdownFuncs[0] = tp.Shutdown
+	otel.SetTracerProvider(tp)
+
+	mp, err := observability.InitMeterProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, nil, fmt.Errorf("failed to initialize meter provider: %w", err)
+	}
+
+	shutdownFuncs[1] = mp.Shutdown
+	otel.SetMeterProvider(mp)
+
+	loggerProvider, err := observability.InitLoggingProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
+	if err != nil {
+		handleErr(err)
+
+		return shutdown, nil, nil, fmt.Errorf("failed to initialize logger provider: %w", err)
+	}
+
+	shutdownFuncs[2] = loggerProvider.Shutdown
+	global.SetLoggerProvider(loggerProvider)
+
+	return shutdown, mp, loggerProvider, nil
 }

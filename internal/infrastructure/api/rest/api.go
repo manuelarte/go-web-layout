@@ -12,8 +12,8 @@ import (
 
 	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
-	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/tracing"
+	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/observability/logging"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -30,7 +30,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 	}
 	ssi := NewStrictHandlerWithOptions(api, nil, StrictHTTPServerOptions{
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			_, span := tracing.StartSpan(r.Context(), "ResponseErrorHandlerFunc")
+			_, span := observability.StartSpan(r.Context(), "ResponseErrorHandlerFunc")
 			defer span.End()
 
 			if _, ok := errors.AsType[ValidationError](err); ok {
@@ -81,7 +81,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 		BaseRouter:  r,
 		Middlewares: nil,
 		ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			_, span := tracing.StartSpan(r.Context(), "ErrorHandlerFunc")
+			_, span := observability.StartSpan(r.Context(), "ErrorHandlerFunc")
 			defer span.End()
 
 			w.Header().Set("Content-Type", "application/problem+json")
