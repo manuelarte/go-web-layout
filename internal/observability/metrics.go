@@ -7,6 +7,7 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
+// InitMeterProvider initializes the meter provider.
 func InitMeterProvider() (*sdkmetric.MeterProvider, error) {
 	exp, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
 	if err != nil {

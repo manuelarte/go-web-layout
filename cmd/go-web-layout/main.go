@@ -8,14 +8,12 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -30,6 +28,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/logging"
+	"github.com/manuelarte/go-web-layout/internal/observability"
 )
 
 func main() {
@@ -62,15 +61,9 @@ func run(logger *slog.Logger) error {
 
 	userRepo := db.NewRepository(dbConn)
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		return fmt.Errorf("failed to get hostname: %w", err)
-	}
-
-	// initialize tracer
 	tracer := otel.Tracer(info.AppName)
 
-	otelShutdown, mp, err := setupOTelSDK(ctx, cfg, hostname)
+	otelShutdown, mp, err := setupOTelSDK(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("error setting open telemetry: %w", err)
 	}
@@ -174,7 +167,6 @@ func newPropagator() propagation.TextMapPropagator {
 func setupOTelSDK(
 	ctx context.Context,
 	cfg config.AppEnv,
-	hostname string,
 ) (func(context.Context) error, *sdkmetric.MeterProvider, error) {
 	shutdownFuncs := make([]func(context.Context) error, 2)
 
@@ -203,7 +195,7 @@ func setupOTelSDK(
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	tp, err := observability.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, hostname)
+	tp, err := observability.InitTracerProvider(ctx, cfg.OtelExporterEndpoint, cfg.Hostname)
 	if err != nil {
 		handleErr(err)
 

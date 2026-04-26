@@ -13,6 +13,7 @@ import (
 	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/logging"
+	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 

@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/manuelarte/go-web-layout/internal/logging"
+	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/users"

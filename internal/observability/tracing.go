@@ -1,4 +1,3 @@
-// Package tracing provides tracing functionality.
 package observability
 
 import (

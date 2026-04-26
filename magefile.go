@@ -15,6 +15,11 @@ import (
 	"github.com/magefile/mage/mg"
 )
 
+// Aliases maps alias names to functions
+var Aliases = map[string]any{
+	"fmt": Format,
+}
+
 // Default target to run when none is specified
 // If not set, running mage will list available targets
 // var Default = Build

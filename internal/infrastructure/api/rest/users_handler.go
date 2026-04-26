@@ -16,6 +16,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
