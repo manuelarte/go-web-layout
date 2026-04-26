@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/manuelarte/go-web-layout/internal/info"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,8 +31,8 @@ func TestActuatorsHandler_ActuatorsInfoRoute(t *testing.T) {
 	expected := Info{
 		App: InfoApp{
 			Description: "Example of web project layout",
-			Name:        "Go-Web-Layout",
-			Version:     "local",
+			Name:        info.AppName,
+			Version:     info.Version,
 		},
 	}
 

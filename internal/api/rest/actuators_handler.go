@@ -27,7 +27,7 @@ func (h ActuatorsHandler) ActuatorsInfo(
 	return ActuatorsInfo200JSONResponse{
 		App: InfoApp{
 			Description: "Example of web project layout",
-			Name:        "Go-Web-Layout",
+			Name:        info.AppName,
 			Version:     info.Version,
 		},
 		Git: InfoGit{

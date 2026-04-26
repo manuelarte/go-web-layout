@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/manuelarte/go-web-layout/internal/info"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -26,7 +27,8 @@ func InitMeter() (*sdkmetric.MeterProvider, error) {
 	), nil
 }
 
-func InitTracerProvider() (*sdktrace.TracerProvider, error) {
+func InitTracerProvider(hostname string) (*sdktrace.TracerProvider, error) {
+	// TODO(manuelarte): either stdout or collector
 	exporter, err := stdout.New(stdout.WithPrettyPrint())
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize exporter: %w", err)
@@ -35,8 +37,9 @@ func InitTracerProvider() (*sdktrace.TracerProvider, error) {
 	res, err := resource.New(
 		context.Background(),
 		resource.WithAttributes(
-			// the service name used to display traces in backends
-			semconv.ServiceNameKey.String("go-web-layout"),
+			semconv.ServiceNameKey.String(info.AppName),
+			semconv.ServiceVersionKey.String(info.Version),
+			semconv.HostNameKey.String(hostname),
 		),
 	)
 	if err != nil {
@@ -57,11 +60,11 @@ func StartSpan(ctx context.Context, name string, opts ...oteltrace.SpanStartOpti
 }
 
 func getOrNewTracer(ctx context.Context) oteltrace.Tracer {
-	previous := ctx.Value(TracingContextKey)
+	previous := ctx.Value(contextKey)
 	if previous != nil {
 		//nolint:errcheck // it should always be ok
 		return previous.(oteltrace.Tracer)
 	}
 
-	return otel.Tracer("go-web-layout")
+	return otel.Tracer(info.AppName)
 }

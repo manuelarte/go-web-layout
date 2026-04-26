@@ -1,6 +1,8 @@
 // Package info provides build information to be used in the actuators/info endpoint.
 package info
 
+const AppName = "go-web-layout"
+
 //nolint:gochecknoglobals // We want to be able to override these values with ldflags.
 var (
 	Branch    string    // Branch - The branch used to build.

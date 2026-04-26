@@ -7,12 +7,14 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/manuelarte/go-web-layout/internal/info"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/otel"
@@ -60,7 +62,11 @@ func run(logger *slog.Logger) error {
 
 	userRepo := db.NewRepository(dbConn)
 
-	tp, err := tracing.InitTracerProvider()
+	hostname, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("failed to get hostname: %w", err)
+	}
+	tp, err := tracing.InitTracerProvider(hostname)
 	if err != nil {
 		return fmt.Errorf("failed to initialize tracer provider: %w", err)
 	}
@@ -77,7 +83,7 @@ func run(logger *slog.Logger) error {
 	textMapPropagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
 	otel.SetTextMapPropagator(textMapPropagator)
 	// initialize tracer
-	tracer := otel.Tracer("go-web-layout")
+	tracer := otel.Tracer(info.AppName)
 	// initialize meter provider & set global meter provider
 	mp, err := tracing.InitMeter()
 	if err != nil {
@@ -86,7 +92,7 @@ func run(logger *slog.Logger) error {
 
 	otel.SetMeterProvider(mp)
 	// define base config for metric middlewares
-	baseCfg := otelchimetric.NewBaseConfig("go-web-layout", otelchimetric.WithMeterProvider(mp))
+	baseCfg := otelchimetric.NewBaseConfig(info.AppName, otelchimetric.WithMeterProvider(mp))
 
 	r := chi.NewRouter()
 
@@ -95,7 +101,7 @@ func run(logger *slog.Logger) error {
 	r.Use(
 		logging.Middleware(logger),
 		middleware.Logger,
-		otelchi.Middleware("go-web-layout", otelchi.WithChiRoutes(r)),
+		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewRequestDurationMillis(baseCfg),
 		otelchimetric.NewRequestInFlight(baseCfg),
 		otelchimetric.NewResponseSizeBytes(baseCfg),
@@ -113,7 +119,7 @@ func run(logger *slog.Logger) error {
 		Handler:           r,
 		ReadHeaderTimeout: headerTimeout, // Prevent G112 (CWE-400)
 		BaseContext: func(net.Listener) context.Context {
-			return context.WithValue(ctx, tracing.TracingContextKey, tracer)
+			return tracing.AddContext(ctx, tracer)
 		},
 	}
 
