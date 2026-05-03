@@ -12,8 +12,15 @@ import (
 	resources "github.com/manuelarte/go-web-layout"
 )
 
-func Migrate() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "file:test.db?cache=shared&mode=memory")
+func Migrate(name ...string) (*sql.DB, error) {
+	dbName := "test.db"
+	if len(name) > 0 {
+		dbName = name[0]
+	}
+
+	dsn := fmt.Sprintf("file:%s?cache=shared&mode=memory", dbName)
+
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}

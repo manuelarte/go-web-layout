@@ -32,7 +32,7 @@ func TestRepositoryGetAllSuccessful(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
-			db, err := config.Migrate()
+			db, err := config.Migrate(t.Name())
 			require.NoError(t, err)
 
 			r := NewRepository(db)
@@ -52,7 +52,7 @@ func TestRepositoryGetByIDNotFound(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
-	db, err := config.Migrate()
+	db, err := config.Migrate(t.Name())
 	require.NoError(t, err)
 
 	r := NewRepository(db)
