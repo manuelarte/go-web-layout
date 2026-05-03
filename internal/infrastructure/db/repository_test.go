@@ -3,6 +3,7 @@ package db
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,7 +32,7 @@ func TestRepositoryGetAllSuccessful(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
-			db, err := config.Migrate()
+			db, err := config.Migrate(t.Name())
 			require.NoError(t, err)
 
 			r := NewRepository(db)
@@ -45,4 +46,22 @@ func TestRepositoryGetAllSuccessful(t *testing.T) {
 			assert.Subset(t, actual.Content(), test.expected(test.migrate, test.pageRequest).Content())
 		})
 	}
+}
+
+func TestRepositoryGetByIDNotFound(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	db, err := config.Migrate(t.Name())
+	require.NoError(t, err)
+
+	r := NewRepository(db)
+
+	// Act
+	notFoundID := users.UserID(uuid.New())
+	_, err = r.GetByID(t.Context(), notFoundID)
+
+	// Assert
+	wantErr := users.NotFoundError{ID: notFoundID}
+	assert.Equal(t, wantErr, err)
 }

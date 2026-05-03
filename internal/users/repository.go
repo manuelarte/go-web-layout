@@ -3,12 +3,10 @@ package users
 import (
 	"context"
 
-	"github.com/google/uuid"
-
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 )
 
-//go:generate mockgen -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
+//go:generate mockgen -typed -package $GOPACKAGE -source $GOFILE -package users -destination ./mock.gen.$GOFILE
 type (
 	// Repository interface with the user's repository methods.
 	Repository interface {
@@ -17,6 +15,6 @@ type (
 		// GetAll gets all users paginated.
 		GetAll(context.Context, pagination.PageRequest) (pagination.Page[User], error)
 		// GetByID gets a user by its ID.
-		GetByID(context.Context, uuid.UUID) (User, error)
+		GetByID(context.Context, UserID) (User, error)
 	}
 )

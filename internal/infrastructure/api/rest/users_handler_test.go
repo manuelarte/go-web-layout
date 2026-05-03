@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -43,12 +42,15 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			expected: ErrorResponse{
 				Type:     "NotFound",
 				Title:    "User not found",
-				Detail:   "No User found with id: 08ec89b3-288c-4b38-ba25-b91c81004699",
+				Detail:   "user with id 08ec89b3-288c-4b38-ba25-b91c81004699 not found",
 				Status:   http.StatusNotFound,
 				Instance: "00000000000000000000000000000000",
 			},
 			expectedMockCall: func(id string, ms *users.MockRepository) {
-				ms.EXPECT().GetByID(gomock.Any(), gomock.Eq(uuid.MustParse(id))).Return(users.User{}, sql.ErrNoRows)
+				userID := users.UserID(uuid.MustParse(id))
+				ms.EXPECT().GetByID(
+					gomock.Any(),
+					gomock.Eq(userID)).Return(users.User{}, users.NotFoundError{ID: userID})
 			},
 		},
 	}
