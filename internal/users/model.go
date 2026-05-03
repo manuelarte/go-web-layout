@@ -10,10 +10,11 @@ import (
 )
 
 var (
-	ErrUsernameTooShort = errors.New("username too short")
-	ErrUsernameTooLong  = errors.New("username too long")
-	ErrPasswordTooShort = errors.New("password too short")
-	ErrPasswordTooLong  = errors.New("password too long")
+	ErrUsernameTooShort       = errors.New("username too short")
+	ErrUsernameTooLong        = errors.New("username too long")
+	ErrPasswordTooShort       = errors.New("password too short")
+	ErrPasswordTooLong        = errors.New("password too long")
+	_                   error = new(NotFoundError)
 )
 
 type (
@@ -30,7 +31,24 @@ type (
 	Username string
 
 	Password string
+
+	NotFoundError struct {
+		ID UserID
+	}
 )
+
+func (u NotFoundError) Error() string {
+	return fmt.Sprintf("user with id %s not found", u.ID.String())
+}
+
+// Get gets a user by its ID.
+// Can return either UserNotFoundError if the user id is not found,
+// or any other database error.
+//
+//nolint:wrapcheck // already wrapped in the repository
+func (id UserID) Get(ctx context.Context, r Repository) (User, error) {
+	return r.GetByID(ctx, id)
+}
 
 // NewUser creates a new user.
 func NewUser(ctx context.Context, u Username, p Password, r Repository) (User, error) {

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -101,14 +102,14 @@ func (r Repository) GetAll(ctx context.Context, pr pagination.PageRequest) (pagi
 		return pagination.Page[users.User]{}, fmt.Errorf("error committing transaction: %w", err)
 	}
 
-	users := lo.Map(uDao, func(item sqlc.User, index int) users.User {
+	usersMapped := lo.Map(uDao, func(item sqlc.User, index int) users.User {
 		return transformModel(item)
 	})
 
-	return pagination.MustPage(users, pr, count), nil
+	return pagination.MustPage(usersMapped, pr, count), nil
 }
 
-func (r Repository) GetByID(ctx context.Context, id uuid.UUID) (users.User, error) {
+func (r Repository) GetByID(ctx context.Context, id users.UserID) (users.User, error) {
 	ctx, span := observability.StartSpan(
 		ctx,
 		"Repository.GetByID",
@@ -116,8 +117,12 @@ func (r Repository) GetByID(ctx context.Context, id uuid.UUID) (users.User, erro
 	)
 	defer span.End()
 
-	dao, err := r.queries.GetUserByID(ctx, id)
+	dao, err := r.queries.GetUserByID(ctx, uuid.UUID(id))
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return users.User{}, users.NotFoundError{ID: id}
+		}
+
 		return users.User{}, fmt.Errorf("error getting user by id: %w", err)
 	}
 

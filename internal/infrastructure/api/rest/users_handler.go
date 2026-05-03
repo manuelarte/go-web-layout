@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -22,14 +21,14 @@ import (
 )
 
 type UsersHandler struct {
-	cfg     config.AppEnv
-	service users.Repository
+	cfg        config.AppEnv
+	repository users.Repository
 }
 
-func NewUsersHandler(cfg config.AppEnv, service users.Repository) UsersHandler {
+func NewUsersHandler(cfg config.AppEnv, repository users.Repository) UsersHandler {
 	return UsersHandler{
-		cfg:     cfg,
-		service: service,
+		cfg:        cfg,
+		repository: repository,
 	}
 }
 
@@ -49,22 +48,30 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 		}
 	}
 
-	user, err := h.service.GetByID(ctx, request.UserId)
+	user, err := users.UserID(request.UserId).Get(ctx, h.repository)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if notFoundError, ok := errors.AsType[users.NotFoundError](err); ok {
 			return GetUser4XXApplicationProblemPlusJSONResponse{
 				StatusCode: http.StatusNotFound,
 				Body: ErrorResponse{
 					Type:     "NotFound",
 					Title:    "User not found",
-					Detail:   fmt.Sprintf("No User found with id: %s", request.UserId.String()),
+					Detail:   notFoundError.Error(),
 					Status:   http.StatusNotFound,
 					Instance: span.SpanContext().TraceID().String(),
 				},
 			}, nil
 		}
 
-		return nil, fmt.Errorf("error getting user: %w", err)
+		return GetUser500ApplicationProblemPlusJSONResponse(
+			ErrorResponse{
+				Type:     "Internal Server Error",
+				Title:    "Internal Server Error",
+				Detail:   err.Error(),
+				Status:   http.StatusInternalServerError,
+				Instance: span.SpanContext().TraceID().String(),
+			},
+		), nil
 	}
 
 	return GetUser200JSONResponse(transformUserDaoToDto(fieldNode, user)), nil
@@ -109,7 +116,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		return nil, fmt.Errorf("error creating page request: %w", err)
 	}
 
-	pageUsers, err := h.service.GetAll(ctx, pr)
+	pageUsers, err := h.repository.GetAll(ctx, pr)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users: %w", err)
 	}
