@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	resources "github.com/manuelarte/go-web-layout"
@@ -34,8 +35,8 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 			defer span.End()
 
 			if _, ok := errors.AsType[ValidationError](err); ok {
-				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/problem+json")
+				w.WriteHeader(http.StatusBadRequest)
 
 				resp := func() ValidationError {
 					var target ValidationError
@@ -43,7 +44,7 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					_ = errors.As(err, &target)
 
 					return target
-				}().ErrorResponse(span.SpanContext().TraceID().String())
+				}().ErrorResponse(middleware.GetReqID(r.Context()))
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
@@ -52,17 +53,13 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					return
 				}
 
-				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write(bytes) // #nosec G705
 
 				return
 			}
 
 			if invalidParamError, ok := errors.AsType[*InvalidParamFormatError](err); ok {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Header().Set("Content-Type", "application/problem+json")
-
-				resp := invalidParamError.ErrorResponse(span.SpanContext().TraceID().String())
+				resp := invalidParamError.ErrorResponse(middleware.GetReqID(r.Context()))
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
@@ -71,6 +68,8 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					return
 				}
 
+				w.Header().Set("Content-Type", "application/problem+json")
+				w.WriteHeader(http.StatusBadRequest)
 				_, _ = w.Write(bytes) // #nosec G705
 
 				return
@@ -84,12 +83,8 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 			_, span := observability.StartSpan(r.Context(), "ErrorHandlerFunc")
 			defer span.End()
 
-			w.Header().Set("Content-Type", "application/problem+json")
-
 			if invalidParamError, ok := errors.AsType[*InvalidParamFormatError](err); ok {
-				w.WriteHeader(http.StatusBadRequest)
-
-				resp := invalidParamError.ErrorResponse(span.SpanContext().TraceID().String())
+				resp := invalidParamError.ErrorResponse(middleware.GetReqID(r.Context()))
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
@@ -98,6 +93,8 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 					return
 				}
 
+				w.Header().Set("Content-Type", "application/problem+json")
+				w.WriteHeader(http.StatusBadRequest)
 				_, _ = w.Write(bytes) // #nosec G705
 			}
 		},

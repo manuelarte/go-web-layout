@@ -28,11 +28,11 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not valid uuid": {
 			id: "1",
 			expected: ErrorResponse{
-				Type:     "InvalidParameterValue",
-				Title:    "Invalid Parameter Value",
-				Detail:   "userId: error unmarshaling '1' text as *uuid.UUID: invalid UUID length: 1",
-				Status:   http.StatusBadRequest,
-				Instance: "00000000000000000000000000000000",
+				Type:      "InvalidParameterValue",
+				Title:     "Invalid Parameter Value",
+				Detail:    "userId: error unmarshaling '1' text as *uuid.UUID: invalid UUID length: 1",
+				Status:    http.StatusBadRequest,
+				RequestId: "",
 			},
 			expectedMockCall: func(id string, ms *users.MockRepository) {
 			},
@@ -40,11 +40,11 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 		"not existing user": {
 			id: "08ec89b3-288c-4b38-ba25-b91c81004699",
 			expected: ErrorResponse{
-				Type:     "NotFound",
-				Title:    "User not found",
-				Detail:   "user with id 08ec89b3-288c-4b38-ba25-b91c81004699 not found",
-				Status:   http.StatusNotFound,
-				Instance: "00000000000000000000000000000000",
+				Type:      "NotFound",
+				Title:     "User not found",
+				Detail:    "user with id 08ec89b3-288c-4b38-ba25-b91c81004699 not found",
+				Status:    http.StatusNotFound,
+				RequestId: "",
 			},
 			expectedMockCall: func(id string, ms *users.MockRepository) {
 				userID := users.UserID(uuid.MustParse(id))
