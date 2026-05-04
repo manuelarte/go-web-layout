@@ -2,7 +2,10 @@
 
 package rest
 
-import "strings"
+import (
+	"net/url"
+	"strings"
+)
 
 type ActuatorsHealthEndpoint struct{}
 
@@ -20,16 +23,54 @@ func (p ActuatorsInfoEndpoint) Path() string {
 
 type GetUsersEndpoint struct{}
 
-func (p GetUsersEndpoint) Path() string {
+type GetUsersEndpointQueryParams struct {
+	Page   string
+	Size   string
+	Fields []string
+}
+
+func (q GetUsersEndpointQueryParams) ToQueryString() string {
+	values := url.Values{}
+	if q.Page != "" {
+		values.Set("page", q.Page)
+	}
+	if q.Size != "" {
+		values.Set("size", q.Size)
+	}
+	if len(q.Fields) > 0 {
+		values.Set("fields", strings.Join(q.Fields, ","))
+	}
+	return values.Encode()
+}
+
+func (p GetUsersEndpoint) Path(queryParams GetUsersEndpointQueryParams) string {
 	message := "/api/v1/users"
+	if queryString := queryParams.ToQueryString(); queryString != "" {
+		message = message + "?" + queryString
+	}
 	return message
 }
 
 type GetUserEndpoint struct{}
 
-func (p GetUserEndpoint) Path(userId string) string {
+type GetUserEndpointQueryParams struct {
+	Fields []string
+}
+
+func (q GetUserEndpointQueryParams) ToQueryString() string {
+	values := url.Values{}
+	if len(q.Fields) > 0 {
+		values.Set("fields", strings.Join(q.Fields, ","))
+	}
+	return values.Encode()
+}
+
+func (p GetUserEndpoint) Path(userId string, queryParams GetUserEndpointQueryParams) string {
 	message := "/api/v1/users/{userId}"
 	message = strings.Replace(message, "{userId}", userId, -1)
+	if queryString := queryParams.ToQueryString(); queryString != "" {
+		message = message + "?" + queryString
+	}
 	return message
 }
 

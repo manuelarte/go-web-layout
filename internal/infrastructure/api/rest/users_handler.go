@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golaxo/gofieldselect"
@@ -42,9 +44,13 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 	)
 	defer span.End()
 
+	host, _ := ctx.Value("host").(string)
+
 	logger := logging.FromContext(ctx)
 
-	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	fields := ptrutils.DerefOr(request.Params.Fields, []string{})
+
+	fieldNode, err := gofieldselect.Parse(strings.Join(fields, ","))
 	if err != nil {
 		return nil, &InvalidParamFormatError{
 			ParamName: "fields",
@@ -80,7 +86,7 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 		), nil
 	}
 
-	return GetUser200JSONResponse(transformUserDaoToDto(fieldNode, user)), nil
+	return GetUser200JSONResponse(transformUserDaoToDto(host, fieldNode, user)), nil
 }
 
 func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObject) (GetUsersResponseObject, error) {
@@ -90,11 +96,28 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	)
 	defer span.End()
 
+	host, _ := ctx.Value("host").(string)
 	requestID := middleware.GetReqID(ctx)
-	page := ptrutils.DerefOr(request.Params.Page, 0)
-	size := ptrutils.DerefOr(request.Params.Size, 20)
 
-	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	page := ptrutils.DerefOr(request.Params.Page, 0)
+	if page < 0 || page > 1000 {
+		return nil, &InvalidParamFormatError{
+			ParamName: "page",
+			Err:       errors.New("page must be between 0 and 1000"),
+		}
+	}
+
+	size := ptrutils.DerefOr(request.Params.Size, 20)
+	if size < 1 || size > 50 {
+		return nil, &InvalidParamFormatError{
+			ParamName: "size",
+			Err:       errors.New("size must be between 1 and 50"),
+		}
+	}
+
+	fields := ptrutils.DerefOr(request.Params.Fields, []string{})
+
+	fieldNode, err := gofieldselect.Parse(strings.Join(fields, ","))
 	if err != nil {
 		return nil, &InvalidParamFormatError{
 			ParamName: "fields",
@@ -127,26 +150,31 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}
 
 	urlBuilder := func(page, size int32) string {
-		return fmt.Sprintf("%s?page=%d&size=%d", Paths{}.GetUsersEndpoint.Path(), page, size)
+		return fmt.Sprintf("%s%s", host, Paths{}.GetUsersEndpoint.Path(GetUsersEndpointQueryParams{
+			Page:   strconv.FormatInt(int64(page), 10),
+			Size:   strconv.FormatInt(int64(size), 10),
+			Fields: nil,
+		}))
 	}
 	self := urlBuilder(page, size)
-	prev := urlBuilder(page-1, size)
 	first := urlBuilder(0, size)
 	//gosec:disable G115 -- Not expecting to overflow
 	last := urlBuilder(int32(pageUsers.TotalPages()-1), size)
 
-	next := urlBuilder(page+1, size)
+	prev := new(urlBuilder(page-1, size))
+
+	next := new(urlBuilder(page+1, size))
 	if page == 0 {
-		prev = ""
+		prev = nil
 	}
 	//gosec:disable G115 -- Not expecting to overflow
 	if page == int32(pageUsers.TotalPages()-1) {
-		next = ""
+		next = nil
 	}
 
 	return GetUsers200JSONResponse{
 		Kind:    KindPage,
-		Content: transformUserDaosToDtos(fieldNode, pageUsers.Content()),
+		Content: transformUserDaosToDtos(host, fieldNode, pageUsers.Content()),
 		Page: Page{
 			Number:        page,
 			Size:          size,
@@ -168,15 +196,15 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}, nil
 }
 
-func transformUserDaosToDtos(fieldNode gofieldselect.Node, daos []users.User) []User {
+func transformUserDaosToDtos(host string, fieldNode gofieldselect.Node, daos []users.User) []User {
 	return lo.Map(daos, func(dao users.User, _ int) User {
-		return transformUserDaoToDto(fieldNode, dao)
+		return transformUserDaoToDto(host, fieldNode, dao)
 	})
 }
 
-func transformUserDaoToDto(fieldNode gofieldselect.Node, dao users.User) User {
+func transformUserDaoToDto(host string, fieldNode gofieldselect.Node, dao users.User) User {
 	return User{
-		Self:      Paths{}.GetUserEndpoint.Path(dao.ID().String()),
+		Self:      fmt.Sprintf("%s/%s", host, Paths{}.GetUserEndpoint.Path(dao.ID().String(), GetUserEndpointQueryParams{})),
 		Kind:      KindUser,
 		Id:        gofieldselect.Get(fieldNode, "id", new(uuid.UUID(dao.ID()))),
 		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", new(dao.CreatedAt())),

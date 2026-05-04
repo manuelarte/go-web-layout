@@ -88,6 +88,7 @@ func run() error {
 	headerTimeout := 4 * time.Second
 	r.Use(
 		loggingCfg.Middleware(logger),
+		addHostValue(),
 		middleware.Logger,
 		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewServerRequestDuration(baseCfg),
@@ -239,4 +240,15 @@ func setupOTelSDK(
 	global.SetLoggerProvider(loggerProvider)
 
 	return shutdown, mp, loggerProvider, nil
+}
+
+// addHostValue set the host as a parameter.
+func addHostValue() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			//nolint:staticcheck // looking for a better solution
+			ctx := context.WithValue(r.Context(), "host", fmt.Sprintf("http://%s", r.Host))
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

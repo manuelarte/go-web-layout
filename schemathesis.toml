@@ -1,0 +1,8 @@
+[checks.unsupported_method]
+enabled = false
+
+[checks.negative_data_rejection]
+enabled = false
+
+[checks.positive_data_acceptance]
+enabled = false

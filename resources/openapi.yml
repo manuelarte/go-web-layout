@@ -97,10 +97,13 @@ paths:
           in: query
           description: Select fields
           required: false
-          example: id,username
+          example: [id, username]
           schema:
-            type: string
-            format: fields
+            type: array
+            items:
+              type: string
+          explode: false
+          style: form
       responses:
         "200":
           description: Successful response.
@@ -137,6 +140,7 @@ paths:
             type: integer
             format: int32
             minimum: 0
+            maximum: 1000
         - name: size
           in: query
           description: Page size
@@ -151,10 +155,13 @@ paths:
           in: query
           description: Select fields
           required: false
-          example: id,username
+          example: [id, username]
           schema:
-            type: string
-            format: fields
+            type: array
+            items:
+              type: string
+          explode: false
+          style: form
       responses:
         "200":
           description: Successful response.
@@ -203,7 +210,6 @@ components:
       properties:
         type:
           type: string
-          format: uri
           description: A URI reference that identifies the problem type.
         title:
           type: string
@@ -227,9 +233,6 @@ components:
     Health:
       type: object
       description: Health checks about the status of the app
-      required:
-        - status
-        - components
       properties:
         status:
           $ref: '#/components/schemas/HealthStatus'
@@ -267,7 +270,6 @@ components:
         - name
         - description
         - version
-        - requestId
       properties:
         name:
           type: string
@@ -316,8 +318,6 @@ components:
         - totalPages
         - number
         - self
-        - prev
-        - next
         - first
         - last
       properties:

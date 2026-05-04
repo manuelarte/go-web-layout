@@ -83,10 +83,10 @@ type ErrorResponse struct {
 
 // Health Health checks about the status of the app
 type Health struct {
-	Components map[string]HealthComponent `json:"components"`
+	Components *map[string]HealthComponent `json:"components,omitempty"`
 
 	// Status Status of the health check
-	Status HealthStatus `json:"status"`
+	Status *HealthStatus `json:"status,omitempty"`
 }
 
 // HealthComponent Information about the health check
@@ -145,13 +145,13 @@ type Page struct {
 	Last string `json:"last"`
 
 	// Next URL to the next page
-	Next string `json:"next"`
+	Next *string `json:"next,omitempty"`
 
 	// Number Current page number
 	Number int32 `json:"number"`
 
 	// Prev URL to the previous page
-	Prev string `json:"prev"`
+	Prev *string `json:"prev,omitempty"`
 
 	// Self URL to the current page
 	Self string `json:"self"`
@@ -221,13 +221,13 @@ type GetUsersParams struct {
 	Size *int32 `form:"size,omitempty" json:"size,omitempty"`
 
 	// Fields Select fields
-	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
+	Fields *[]string `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // GetUserParams defines parameters for GetUser.
 type GetUserParams struct {
 	// Fields Select fields
-	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
+	Fields *[]string `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
@@ -337,7 +337,7 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 
 	// ------------- Optional query parameter "fields" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "string", Format: "fields"})
+	err = runtime.BindQueryParameterWithOptions("form", false, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
 		return
@@ -373,7 +373,7 @@ func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Reques
 
 	// ------------- Optional query parameter "fields" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "string", Format: "fields"})
+	err = runtime.BindQueryParameterWithOptions("form", false, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
 		return

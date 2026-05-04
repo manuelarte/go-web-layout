@@ -16,7 +16,7 @@ func (h ActuatorsHandler) ActuatorsHealth(
 	// TODO(manuelarte): Implement health check
 	return ActuatorsHealth200JSONResponse{
 		Components: nil,
-		Status:     "",
+		Status:     nil,
 	}, nil
 }
 
