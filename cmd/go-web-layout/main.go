@@ -33,6 +33,7 @@ import (
 	loggingCfg "github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/logging/wideevents"
 	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/services"
 )
 
 func main() {
@@ -127,6 +128,8 @@ func run() error {
 		interceptorlogging.WithLogOnEvents(),
 	}
 
+	createUserService := services.NewCreateUser(userRepo)
+
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
@@ -138,7 +141,7 @@ func run() error {
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 		),
 	)
-	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(userRepo))
+	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(createUserService))
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {

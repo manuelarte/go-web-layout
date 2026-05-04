@@ -52,7 +52,7 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 		}
 	}
 
-	user, err := users.UserID(request.UserId).Get(ctx, h.repository)
+	user, err := h.repository.GetByID(ctx, users.UserID(request.UserId))
 	if err != nil {
 		if notFoundError, ok := errors.AsType[users.NotFoundError](err); ok {
 			return GetUser4XXApplicationProblemPlusJSONResponse{
@@ -176,11 +176,11 @@ func transformUserDaosToDtos(fieldNode gofieldselect.Node, daos []users.User) []
 
 func transformUserDaoToDto(fieldNode gofieldselect.Node, dao users.User) User {
 	return User{
-		Self:      Paths{}.GetUserEndpoint.Path(dao.ID.String()),
+		Self:      Paths{}.GetUserEndpoint.Path(dao.ID().String()),
 		Kind:      KindUser,
-		Id:        gofieldselect.Get(fieldNode, "id", new(uuid.UUID(dao.ID))),
-		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", new(dao.CreatedAt)),
-		UpdatedAt: gofieldselect.Get(fieldNode, "updatedAt", new(dao.UpdatedAt)),
-		Username:  gofieldselect.Get(fieldNode, "username", new(dao.Username)),
+		Id:        gofieldselect.Get(fieldNode, "id", new(uuid.UUID(dao.ID()))),
+		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", new(dao.CreatedAt())),
+		UpdatedAt: gofieldselect.Get(fieldNode, "updatedAt", new(dao.UpdatedAt())),
+		Username:  gofieldselect.Get(fieldNode, "username", new(dao.Username())),
 	}
 }

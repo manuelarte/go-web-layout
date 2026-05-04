@@ -21,6 +21,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
+	"github.com/manuelarte/go-web-layout/internal/services"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -81,8 +82,9 @@ func TestServer_CreateUser_ValidationErrors(t *testing.T) {
 			// Arrange
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
-			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService))
+			usersRepository := users.NewMockRepository(ctrl)
+			createUserService := services.NewCreateUser(usersRepository)
+			listener := setup(t, ctx, NewServer(createUserService))
 
 			resolver.SetDefaultScheme("passthrough")
 
@@ -119,10 +121,10 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			response: func(userCreated users.User) *usersv1.CreateUserResponse {
 				return &usersv1.CreateUserResponse{
 					User: &usersv1.User{
-						Id:        userCreated.ID.String(),
-						CreatedAt: timestamppb.New(userCreated.CreatedAt),
-						UpdatedAt: timestamppb.New(userCreated.UpdatedAt),
-						Username:  string(userCreated.Username),
+						Id:        userCreated.ID().String(),
+						CreatedAt: timestamppb.New(userCreated.CreatedAt()),
+						UpdatedAt: timestamppb.New(userCreated.UpdatedAt()),
+						Username:  string(userCreated.Username()),
 					},
 				}
 			},
@@ -135,8 +137,9 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			// Arrange
 			ctx := t.Context()
 			ctrl := gomock.NewController(t)
-			usersService := users.NewMockRepository(ctrl)
-			listener := setup(t, ctx, NewServer(usersService))
+			usersRepository := users.NewMockRepository(ctrl)
+			createUserService := services.NewCreateUser(usersRepository)
+			listener := setup(t, ctx, NewServer(createUserService))
 
 			resolver.SetDefaultScheme("passthrough")
 
@@ -150,13 +153,13 @@ func TestServer_CreateUser_Successful(t *testing.T) {
 			client := usersv1.NewUsersServiceClient(conn)
 
 			// Assert mocks
-			userCreated := users.User{
-				ID:        users.UserID{},
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-				Username:  users.Username(test.request.GetUsername()),
-			}
-			usersService.EXPECT().Create(
+			userCreated := users.NewUser(
+				users.UserID{},
+				time.Time{},
+				time.Time{},
+				users.Username(test.request.GetUsername()),
+			)
+			usersRepository.EXPECT().Create(
 				gomock.Any(),
 				gomock.Eq(users.Username(test.request.GetUsername())),
 				gomock.Eq(users.Password(test.request.GetPassword())),
