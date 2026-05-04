@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golaxo/gofieldselect"
@@ -47,7 +48,9 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 
 	logger := logging.FromContext(ctx)
 
-	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	fields := ptrutils.DerefOr(request.Params.Fields, []string{})
+
+	fieldNode, err := gofieldselect.Parse(strings.Join(fields, ","))
 	if err != nil {
 		return nil, &InvalidParamFormatError{
 			ParamName: "fields",
@@ -95,6 +98,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 
 	host, _ := ctx.Value("host").(string)
 	requestID := middleware.GetReqID(ctx)
+
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	if page < 0 || page > 1000 {
 		return nil, &InvalidParamFormatError{
@@ -102,6 +106,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 			Err:       errors.New("page must be between 0 and 1000"),
 		}
 	}
+
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 	if size < 1 || size > 50 {
 		return nil, &InvalidParamFormatError{
@@ -110,7 +115,9 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		}
 	}
 
-	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
+	fields := ptrutils.DerefOr(request.Params.Fields, []string{})
+
+	fieldNode, err := gofieldselect.Parse(strings.Join(fields, ","))
 	if err != nil {
 		return nil, &InvalidParamFormatError{
 			ParamName: "fields",
@@ -146,7 +153,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 		return fmt.Sprintf("%s%s", host, Paths{}.GetUsersEndpoint.Path(GetUsersEndpointQueryParams{
 			Page:   strconv.FormatInt(int64(page), 10),
 			Size:   strconv.FormatInt(int64(size), 10),
-			Fields: "",
+			Fields: nil,
 		}))
 	}
 	self := urlBuilder(page, size)

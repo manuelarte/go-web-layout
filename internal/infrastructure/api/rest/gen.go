@@ -221,13 +221,13 @@ type GetUsersParams struct {
 	Size *int32 `form:"size,omitempty" json:"size,omitempty"`
 
 	// Fields Select fields
-	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
+	Fields *[]string `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // GetUserParams defines parameters for GetUser.
 type GetUserParams struct {
 	// Fields Select fields
-	Fields *string `form:"fields,omitempty" json:"fields,omitempty"`
+	Fields *[]string `form:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // ServerInterface represents all server handlers.
@@ -337,7 +337,7 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 
 	// ------------- Optional query parameter "fields" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "string", Format: "fields"})
+	err = runtime.BindQueryParameterWithOptions("form", false, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
 		return
@@ -373,7 +373,7 @@ func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Reques
 
 	// ------------- Optional query parameter "fields" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "string", Format: "fields"})
+	err = runtime.BindQueryParameterWithOptions("form", false, false, "fields", r.URL.Query(), &params.Fields, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "fields", Err: err})
 		return

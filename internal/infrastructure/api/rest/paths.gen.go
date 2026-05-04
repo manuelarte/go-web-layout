@@ -26,7 +26,7 @@ type GetUsersEndpoint struct{}
 type GetUsersEndpointQueryParams struct {
 	Page   string
 	Size   string
-	Fields string
+	Fields []string
 }
 
 func (q GetUsersEndpointQueryParams) ToQueryString() string {
@@ -37,8 +37,8 @@ func (q GetUsersEndpointQueryParams) ToQueryString() string {
 	if q.Size != "" {
 		values.Set("size", q.Size)
 	}
-	if q.Fields != "" {
-		values.Set("fields", q.Fields)
+	if len(q.Fields) > 0 {
+		values.Set("fields", strings.Join(q.Fields, ","))
 	}
 	return values.Encode()
 }
@@ -54,13 +54,13 @@ func (p GetUsersEndpoint) Path(queryParams GetUsersEndpointQueryParams) string {
 type GetUserEndpoint struct{}
 
 type GetUserEndpointQueryParams struct {
-	Fields string
+	Fields []string
 }
 
 func (q GetUserEndpointQueryParams) ToQueryString() string {
 	values := url.Values{}
-	if q.Fields != "" {
-		values.Set("fields", q.Fields)
+	if len(q.Fields) > 0 {
+		values.Set("fields", strings.Join(q.Fields, ","))
 	}
 	return values.Encode()
 }

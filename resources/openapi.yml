@@ -97,10 +97,13 @@ paths:
           in: query
           description: Select fields
           required: false
-          example: id,username
+          example: [id, username]
           schema:
-            type: string
-            format: fields
+            type: array
+            items:
+              type: string
+          explode: false
+          style: form
       responses:
         "200":
           description: Successful response.
@@ -152,10 +155,13 @@ paths:
           in: query
           description: Select fields
           required: false
-          example: id,username
+          example: [id, username]
           schema:
-            type: string
-            format: fields
+            type: array
+            items:
+              type: string
+          explode: false
+          style: form
       responses:
         "200":
           description: Successful response.
