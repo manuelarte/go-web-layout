@@ -96,7 +96,12 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	host, _ := ctx.Value("host").(string)
 	requestID := middleware.GetReqID(ctx)
 	page := ptrutils.DerefOr(request.Params.Page, 0)
-
+	if page < 0 || page > 1000 {
+		return nil, &InvalidParamFormatError{
+			ParamName: "page",
+			Err:       errors.New("page must be between 0 and 1000"),
+		}
+	}
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 	if size < 1 || size > 50 {
 		return nil, &InvalidParamFormatError{

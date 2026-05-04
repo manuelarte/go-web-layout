@@ -137,6 +137,7 @@ paths:
             type: integer
             format: int32
             minimum: 0
+            maximum: 1000
         - name: size
           in: query
           description: Page size
