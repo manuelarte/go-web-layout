@@ -1,12 +1,12 @@
 package users
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -20,10 +20,10 @@ var (
 type (
 	// User model to represent a user.
 	User struct {
-		ID        UserID
-		CreatedAt time.Time
-		UpdatedAt time.Time
-		Username  Username
+		id        UserID
+		createdAt time.Time
+		updatedAt time.Time
+		username  Username
 	}
 
 	UserID uuid.UUID
@@ -41,31 +41,18 @@ func (u NotFoundError) Error() string {
 	return fmt.Sprintf("user with id %s not found", u.ID.String())
 }
 
-// Get gets a user by its ID.
-// Can return either UserNotFoundError if the user id is not found,
-// or any other database error.
-//
-//nolint:wrapcheck // already wrapped in the repository
-func (id UserID) Get(ctx context.Context, r Repository) (User, error) {
-	return r.GetByID(ctx, id)
-}
-
-// NewUser creates a new user.
-func NewUser(ctx context.Context, u Username, p Password, r Repository) (User, error) {
-	if err := u.IsValid(); err != nil {
-		return User{}, err
+func NewUser(
+	id UserID,
+	createdAt time.Time,
+	updatedAt time.Time,
+	username Username,
+) User {
+	return User{
+		id:        id,
+		createdAt: createdAt,
+		updatedAt: updatedAt,
+		username:  username,
 	}
-
-	if err := p.IsValid(); err != nil {
-		return User{}, err
-	}
-
-	user, err := r.Create(ctx, u, p)
-	if err != nil {
-		return User{}, fmt.Errorf("error creating user: %w", err)
-	}
-
-	return user, nil
 }
 
 func (id UserID) String() string {
@@ -94,4 +81,29 @@ func (p Password) IsValid() error {
 	}
 
 	return nil
+}
+
+func (p Password) Hash() (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(p), 14)
+	if err != nil {
+		return "", fmt.Errorf("error hashing password: %w", err)
+	}
+
+	return string(bytes), nil
+}
+
+func (u User) Username() Username {
+	return u.username
+}
+
+func (u User) ID() UserID {
+	return u.id
+}
+
+func (u User) CreatedAt() time.Time {
+	return u.createdAt
+}
+
+func (u User) UpdatedAt() time.Time {
+	return u.updatedAt
 }

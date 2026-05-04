@@ -11,7 +11,6 @@ import (
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db/sqlc"
 	"github.com/manuelarte/go-web-layout/internal/logging"
@@ -45,15 +44,15 @@ func (r Repository) Create(ctx context.Context, u users.Username, p users.Passwo
 		},
 	)
 
-	hashedPassword, err := hashPassword(p)
+	nu, err := newNewUser(u, p)
 	if err != nil {
-		return users.User{}, fmt.Errorf("error hashing password: %w", err)
+		return users.User{}, fmt.Errorf("error validating new user fields: %w", err)
 	}
 
 	created, err := r.queries.CreateUser(ctx, sqlc.CreateUserParams{
 		ID:       uuid.New(),
-		Username: string(u),
-		Password: hashedPassword,
+		Username: string(nu.username),
+		Password: nu.hashedPassword,
 	})
 	if err != nil {
 		return users.User{}, fmt.Errorf("error creating user: %w", err)
@@ -130,16 +129,10 @@ func (r Repository) GetByID(ctx context.Context, id users.UserID) (users.User, e
 }
 
 func transformModel(user sqlc.User) users.User {
-	return users.User{
-		ID:        users.UserID(user.ID),
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Username:  users.Username(user.Username),
-	}
-}
-
-func hashPassword(password users.Password) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-
-	return string(bytes), err
+	return users.NewUser(
+		users.UserID(user.ID),
+		user.CreatedAt,
+		user.UpdatedAt,
+		users.Username(user.Username),
+	)
 }

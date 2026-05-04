@@ -13,18 +13,19 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/logging/wideevents"
 	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/services"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 type Server struct {
 	usersv1.UnimplementedUsersServiceServer
 
-	userRepository users.Repository
+	createUserService services.CreateUser
 }
 
-func NewServer(userRepository users.Repository) Server {
+func NewServer(createUserService services.CreateUser) Server {
 	return Server{
-		userRepository: userRepository,
+		createUserService: createUserService,
 	}
 }
 
@@ -44,11 +45,10 @@ func (s Server) CreateUser(
 	)
 	wideevents.AddUsername(ctx, request.GetUsername())
 
-	user, err := users.NewUser(
+	user, err := s.createUserService.CreateUser(
 		ctx,
 		users.Username(request.GetUsername()),
 		users.Password(request.GetPassword()),
-		s.userRepository,
 	)
 	if err != nil {
 		wideevents.AddError(ctx, "db", err)
@@ -56,7 +56,7 @@ func (s Server) CreateUser(
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	wideevents.AddUserID(ctx, user.ID.String())
+	wideevents.AddUserID(ctx, user.ID().String())
 
 	return &usersv1.CreateUserResponse{
 		User: new(transformUser(user)),
@@ -70,9 +70,9 @@ func (s Server) DeleteUser(_ context.Context, _ *usersv1.DeleteUserRequest) (*us
 
 func transformUser(user users.User) usersv1.User {
 	return usersv1.User{
-		Id:        user.ID.String(),
-		CreatedAt: timestamppb.New(user.CreatedAt),
-		UpdatedAt: timestamppb.New(user.UpdatedAt),
-		Username:  string(user.Username),
+		Id:        user.ID().String(),
+		CreatedAt: timestamppb.New(user.CreatedAt()),
+		UpdatedAt: timestamppb.New(user.UpdatedAt()),
+		Username:  string(user.Username()),
 	}
 }
