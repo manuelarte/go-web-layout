@@ -139,4 +139,3 @@ jobs:
         run: |
           kill $(cat /tmp/app.pid) || true
           wait $(cat /tmp/app.pid) 2>/dev/null || true
-

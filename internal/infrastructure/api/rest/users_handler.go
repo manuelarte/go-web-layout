@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golaxo/gofieldselect"
@@ -127,21 +128,25 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	}
 
 	urlBuilder := func(page, size int32) string {
-		return fmt.Sprintf("%s?page=%d&size=%d", Paths{}.GetUsersEndpoint.Path(), page, size)
+		return Paths{}.GetUsersEndpoint.Path(GetUsersEndpointQueryParams{
+			Page:   strconv.FormatInt(int64(page), 10),
+			Size:   strconv.FormatInt(int64(size), 10),
+			Fields: "",
+		})
 	}
 	self := urlBuilder(page, size)
-	prev := urlBuilder(page-1, size)
 	first := urlBuilder(0, size)
 	//gosec:disable G115 -- Not expecting to overflow
 	last := urlBuilder(int32(pageUsers.TotalPages()-1), size)
 
-	next := urlBuilder(page+1, size)
+	prev := new(urlBuilder(page-1, size))
+	next := new(urlBuilder(page+1, size))
 	if page == 0 {
-		prev = ""
+		prev = nil
 	}
 	//gosec:disable G115 -- Not expecting to overflow
 	if page == int32(pageUsers.TotalPages()-1) {
-		next = ""
+		next = nil
 	}
 
 	return GetUsers200JSONResponse{
@@ -176,7 +181,7 @@ func transformUserDaosToDtos(fieldNode gofieldselect.Node, daos []users.User) []
 
 func transformUserDaoToDto(fieldNode gofieldselect.Node, dao users.User) User {
 	return User{
-		Self:      Paths{}.GetUserEndpoint.Path(dao.ID().String()),
+		Self:      Paths{}.GetUserEndpoint.Path(dao.ID().String(), GetUserEndpointQueryParams{}),
 		Kind:      KindUser,
 		Id:        gofieldselect.Get(fieldNode, "id", new(uuid.UUID(dao.ID()))),
 		CreatedAt: gofieldselect.Get(fieldNode, "createdAt", new(dao.CreatedAt())),

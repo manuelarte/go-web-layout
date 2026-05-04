@@ -83,10 +83,10 @@ type ErrorResponse struct {
 
 // Health Health checks about the status of the app
 type Health struct {
-	Components map[string]HealthComponent `json:"components"`
+	Components *map[string]HealthComponent `json:"components,omitempty"`
 
 	// Status Status of the health check
-	Status HealthStatus `json:"status"`
+	Status *HealthStatus `json:"status,omitempty"`
 }
 
 // HealthComponent Information about the health check
@@ -145,13 +145,13 @@ type Page struct {
 	Last string `json:"last"`
 
 	// Next URL to the next page
-	Next string `json:"next"`
+	Next *string `json:"next,omitempty"`
 
 	// Number Current page number
 	Number int32 `json:"number"`
 
 	// Prev URL to the previous page
-	Prev string `json:"prev"`
+	Prev *string `json:"prev,omitempty"`
 
 	// Self URL to the current page
 	Self string `json:"self"`
