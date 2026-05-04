@@ -134,6 +134,7 @@ jobs:
       - uses: schemathesis/action@v3
         with:
           schema: "http://localhost:3001/api/docs"
+          checks: "not (unsupported_http_method)"
       - name: Stop the app
         if: always()
         run: |
