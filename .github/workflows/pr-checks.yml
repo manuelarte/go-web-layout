@@ -103,3 +103,40 @@ jobs:
           yamllint_comment: true
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  schemathesis:
+    name: schemathesis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Build the app
+        run: |
+          go build -o go-web-layout ./cmd/go-web-layout
+      - name: Start the app
+        run: |
+          ./go-web-layout &
+          echo $! > /tmp/app.pid
+          sleep 2
+      - name: Wait for app to be healthy
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:3001/api/docs > /dev/null 2>&1; then
+              echo "App is healthy"
+              exit 0
+            fi
+            echo "Waiting for app to be ready... ($i/30)"
+            sleep 1
+          done
+          echo "App failed to start"
+          exit 1
+      - uses: schemathesis/action@v3
+        with:
+          schema: "http://localhost:3001/api/docs"
+      - name: Stop the app
+        if: always()
+        run: |
+          kill $(cat /tmp/app.pid) || true
+          wait $(cat /tmp/app.pid) 2>/dev/null || true
+
