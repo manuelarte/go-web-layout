@@ -203,7 +203,6 @@ components:
       properties:
         type:
           type: string
-          format: uri
           description: A URI reference that identifies the problem type.
         title:
           type: string
@@ -264,7 +263,6 @@ components:
         - name
         - description
         - version
-        - requestId
       properties:
         name:
           type: string
