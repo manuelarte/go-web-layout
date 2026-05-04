@@ -25,7 +25,7 @@ func (v ValidationError) Error() string {
 	return msg.String()
 }
 
-func (v ValidationError) ErrorResponse(traceID string) ErrorResponse {
+func (v ValidationError) ErrorResponse(requestID string) ErrorResponse {
 	errors := make([]Error, len(v.errors))
 
 	for key, errs := range v.errors {
@@ -38,21 +38,21 @@ func (v ValidationError) ErrorResponse(traceID string) ErrorResponse {
 	}
 
 	return ErrorResponse{
-		Type:     "ValidationError",
-		Title:    "Validation Error",
-		Detail:   "Validation Error",
-		Status:   http.StatusBadRequest,
-		Errors:   new(errors),
-		Instance: traceID,
+		Type:      "ValidationError",
+		Title:     "Validation Error",
+		Detail:    "Validation Error",
+		Status:    http.StatusBadRequest,
+		Errors:    new(errors),
+		RequestId: requestID,
 	}
 }
 
-func (e *InvalidParamFormatError) ErrorResponse(traceID string) ErrorResponse {
+func (e *InvalidParamFormatError) ErrorResponse(requestID string) ErrorResponse {
 	return ErrorResponse{
-		Type:     "InvalidParameterValue",
-		Title:    "Invalid Parameter Value",
-		Detail:   fmt.Sprintf("%s: %s", e.ParamName, e.Err.Error()),
-		Status:   http.StatusBadRequest,
-		Instance: traceID,
+		Type:      "InvalidParameterValue",
+		Title:     "Invalid Parameter Value",
+		Detail:    fmt.Sprintf("%s: %s", e.ParamName, e.Err.Error()),
+		Status:    http.StatusBadRequest,
+		RequestId: requestID,
 	}
 }

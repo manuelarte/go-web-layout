@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -15,6 +16,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/manuelarte/go-web-layout/internal/config"
+	"github.com/manuelarte/go-web-layout/internal/logging"
 	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
@@ -40,6 +42,8 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 	)
 	defer span.End()
 
+	logger := logging.FromContext(ctx)
+
 	fieldNode, err := gofieldselect.Parse(ptrutils.DerefOr(request.Params.Fields, ""))
 	if err != nil {
 		return nil, &InvalidParamFormatError{
@@ -54,22 +58,24 @@ func (h UsersHandler) GetUser(ctx context.Context, request GetUserRequestObject)
 			return GetUser4XXApplicationProblemPlusJSONResponse{
 				StatusCode: http.StatusNotFound,
 				Body: ErrorResponse{
-					Type:     "NotFound",
-					Title:    "User not found",
-					Detail:   notFoundError.Error(),
-					Status:   http.StatusNotFound,
-					Instance: span.SpanContext().TraceID().String(),
+					Type:      "NotFound",
+					Title:     "User not found",
+					Detail:    notFoundError.Error(),
+					Status:    http.StatusNotFound,
+					RequestId: middleware.GetReqID(ctx),
 				},
 			}, nil
 		}
 
+		logger.ErrorContext(ctx, "Error getting user", slog.Any("err", err))
+
 		return GetUser500ApplicationProblemPlusJSONResponse(
 			ErrorResponse{
-				Type:     "Internal Server Error",
-				Title:    "Internal Server Error",
-				Detail:   err.Error(),
-				Status:   http.StatusInternalServerError,
-				Instance: span.SpanContext().TraceID().String(),
+				Type:      "DatabaseError",
+				Title:     "Internal Server Error",
+				Detail:    "Error getting user",
+				Status:    http.StatusInternalServerError,
+				RequestId: middleware.GetReqID(ctx),
 			},
 		), nil
 	}
@@ -84,8 +90,7 @@ func (h UsersHandler) GetUsers(ctx context.Context, request GetUsersRequestObjec
 	)
 	defer span.End()
 
-	//nolint:errcheck // requestID is added by middleware
-	requestID := ctx.Value(middleware.RequestIDKey).(string)
+	requestID := middleware.GetReqID(ctx)
 	page := ptrutils.DerefOr(request.Params.Page, 0)
 	size := ptrutils.DerefOr(request.Params.Size, 20)
 
