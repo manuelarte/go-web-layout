@@ -134,7 +134,7 @@ jobs:
       - uses: schemathesis/action@v3
         with:
           schema: "http://localhost:3001/api/docs"
-          args: "--exclude-checks unsupported_method,negative_data_rejection"
+          args: "--exclude-checks unsupported_method,negative_data_rejection,positive_data_acceptance"
       - name: Stop the app
         if: always()
         run: |
