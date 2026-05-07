@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/manuelarte/go-web-layout/internal/config/logging/wideevents"
+	wideEventLogging "github.com/manuelarte/go-web-layout/internal/config/logging"
 	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/services"
@@ -43,7 +43,7 @@ func (s Server) CreateUser(
 			Value: attribute.StringValue(request.GetUsername()),
 		},
 	)
-	wideevents.AddUsername(ctx, request.GetUsername())
+	wideEventLogging.AddUsername(ctx, request.GetUsername())
 
 	user, err := s.createUserService.CreateUser(
 		ctx,
@@ -51,12 +51,12 @@ func (s Server) CreateUser(
 		users.Password(request.GetPassword()),
 	)
 	if err != nil {
-		wideevents.AddError(ctx, "db", err)
+		wideEventLogging.AddError(ctx, "db", err)
 
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	wideevents.AddUserID(ctx, user.ID().String())
+	wideEventLogging.AddUserID(ctx, user.ID().String())
 
 	return &usersv1.CreateUserResponse{
 		User: new(transformUser(user)),

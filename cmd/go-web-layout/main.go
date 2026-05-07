@@ -28,7 +28,6 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/config/info"
 	loggingCfg "github.com/manuelarte/go-web-layout/internal/config/logging"
-	"github.com/manuelarte/go-web-layout/internal/config/logging/wideevents"
 	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	grpc2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc"
 	usersv1 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
@@ -135,7 +134,7 @@ func run() error {
 	injectWideEventFn := func(ctx context.Context, req any) (context.Context, bool) {
 		switch req.(type) {
 		case *usersv1.CreateUserRequest:
-			return wideevents.AddCreateUserLogEvent(ctx), true
+			return loggingCfg.AddCreateUserLogEvent(ctx), true
 		default:
 			return ctx, false
 		}
@@ -146,7 +145,7 @@ func run() error {
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 			loggingCfg.AddToContext(logger),
-			wideevents.AddCreateUserWideEvent(injectWideEventFn),
+			loggingCfg.AddCreateUserWideEvent(injectWideEventFn),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),

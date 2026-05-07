@@ -1,4 +1,4 @@
-package wideevents
+package logging
 
 import (
 	"context"
@@ -6,8 +6,6 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
-
-	"github.com/manuelarte/go-web-layout/internal/config/logging"
 )
 
 type (
@@ -71,13 +69,13 @@ func AddCreateUserWideEvent(injectWideEventFn func(ctx context.Context, req any)
 		}
 
 		if event.isSuccessful() {
-			logging.FromContext(ctx).InfoContext(
+			FromContext(ctx).InfoContext(
 				ctx,
 				"User created",
 				event.mapToArgs()...,
 			)
 		} else {
-			logging.FromContext(ctx).ErrorContext(
+			FromContext(ctx).ErrorContext(
 				ctx,
 				"Error creating user",
 				event.mapToArgs()...,
