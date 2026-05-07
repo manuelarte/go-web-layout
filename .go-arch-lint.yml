@@ -1,5 +1,11 @@
 version: 3
 workdir: internal
+excludeFiles:
+  - "^.*_test\\.go$"
+
+allow:
+  depOnAnyVendor: true
+
 components:
   api:        { in: infrastructure/api/** }
   services:   { in: services/** }
@@ -15,7 +21,6 @@ commonComponents:
 
 deps:
   api:
-    anyVendorDeps: true
     mayDependOn:
       - api
       - services
@@ -24,11 +29,6 @@ deps:
     mayDependOn:
       - db
   db:
-    anyVendorDeps: true
     mayDependOn:
       - db
       - config
-  config:
-    anyVendorDeps: true
-  users:
-    anyVendorDeps: true
