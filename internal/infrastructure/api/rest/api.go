@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"embed"
 	"encoding/json"
 	"errors"
 	"io/fs"
@@ -11,10 +12,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	resources "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
-	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/observability"
+	"github.com/manuelarte/go-web-layout/internal/config/logging"
+	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
@@ -25,7 +25,13 @@ type API struct {
 	UsersHandler
 }
 
-func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Repository) {
+func CreateRestAPI(
+	r chi.Router,
+	cfg config.AppEnv,
+	userRepository users.Repository,
+	swaggerFS embed.FS,
+	openAPIBytes []byte,
+) {
 	api := API{
 		UsersHandler: NewUsersHandler(cfg, userRepository),
 	}
@@ -104,10 +110,10 @@ func CreateRestAPI(r chi.Router, cfg config.AppEnv, userRepository users.Reposit
 	r.Handle("/metrics", promhttp.Handler())
 
 	// Swagger
-	sfs, _ := fs.Sub(fs.FS(resources.SwaggerUI), "static/swagger-ui")
+	sfs, _ := fs.Sub(fs.FS(swaggerFS), "static/swagger-ui")
 	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
 
 	r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(resources.OpenAPI)
+		_, _ = w.Write(openAPIBytes)
 	})
 }

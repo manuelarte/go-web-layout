@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/manuelarte/go-web-layout/internal/info"
+	"github.com/manuelarte/go-web-layout/internal/config/info"
 )
 
 type ActuatorsHandler struct{}

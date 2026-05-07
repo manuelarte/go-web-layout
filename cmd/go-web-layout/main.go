@@ -24,15 +24,16 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"google.golang.org/grpc"
 
+	goweblayout "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
-	"github.com/manuelarte/go-web-layout/internal/info"
+	"github.com/manuelarte/go-web-layout/internal/config/info"
+	loggingCfg "github.com/manuelarte/go-web-layout/internal/config/logging"
+	"github.com/manuelarte/go-web-layout/internal/config/logging/wideevents"
+	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	grpc2 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc"
 	usersv1 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
-	loggingCfg "github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/logging/wideevents"
-	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/services"
 )
 
@@ -66,7 +67,7 @@ func run() error {
 	// Create a bridged slog logger
 	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp))
 
-	dbConn, err := config.Migrate()
+	dbConn, err := config.Migrate(goweblayout.ResourcesFolder)
 	if err != nil {
 		return fmt.Errorf("failed to migrate the database: %w", err)
 	}
@@ -99,7 +100,7 @@ func run() error {
 		middleware.RealIP,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, cfg, userRepo)
+	rest.CreateRestAPI(r, cfg, userRepo, goweblayout.SwaggerUI, goweblayout.OpenAPI)
 
 	srvErr := make(chan error, 1)
 
@@ -131,12 +132,21 @@ func run() error {
 
 	createUserService := services.NewCreateUser(userRepo)
 
+	injectWideEventFn := func(ctx context.Context, req any) (context.Context, bool) {
+		switch req.(type) {
+		case *usersv1.CreateUserRequest:
+			return wideevents.AddCreateUserLogEvent(ctx), true
+		default:
+			return ctx, false
+		}
+	}
+
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 			loggingCfg.AddToContext(logger),
-			wideevents.AddCreateUserWideEvent(),
+			wideevents.AddCreateUserWideEvent(injectWideEventFn),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),

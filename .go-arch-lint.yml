@@ -1,0 +1,34 @@
+version: 3
+workdir: internal
+components:
+  api:        { in: infrastructure/api/** }
+  services:   { in: services/** }
+  db:         { in: infrastructure/db/** }
+  users:      { in: users }
+  config:     { in: config/** }
+  pagination: { in: pagination }
+
+commonComponents:
+  - users
+  - config
+  - pagination
+
+deps:
+  api:
+    anyVendorDeps: true
+    mayDependOn:
+      - api
+      - services
+      - config
+  services:
+    mayDependOn:
+      - db
+  db:
+    anyVendorDeps: true
+    mayDependOn:
+      - db
+      - config
+  config:
+    anyVendorDeps: true
+  users:
+    anyVendorDeps: true

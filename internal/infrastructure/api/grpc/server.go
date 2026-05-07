@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/manuelarte/go-web-layout/internal/config/logging/wideevents"
+	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
-	"github.com/manuelarte/go-web-layout/internal/logging/wideevents"
-	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/services"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
