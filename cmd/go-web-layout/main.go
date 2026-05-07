@@ -44,6 +44,7 @@ func main() {
 	}
 }
 
+//nolint:funlen // main function
 func run() error {
 	ctx := context.Background()
 

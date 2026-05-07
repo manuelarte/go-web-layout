@@ -54,7 +54,11 @@ func CreateRestAPI(
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
+					logging.FromContext(r.Context()).ErrorContext(
+						r.Context(),
+						"Failed to marshal error response",
+						slog.Any("err", errMarshal),
+					)
 
 					return
 				}
@@ -69,7 +73,11 @@ func CreateRestAPI(
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
+					logging.FromContext(r.Context()).ErrorContext(
+						r.Context(),
+						"Failed to marshal error response",
+						slog.Any("err", errMarshal),
+					)
 
 					return
 				}
@@ -94,7 +102,11 @@ func CreateRestAPI(
 
 				bytes, errMarshal := json.Marshal(resp)
 				if errMarshal != nil {
-					logging.FromContext(r.Context()).Error("Failed to marshal error response", slog.Any("err", errMarshal))
+					logging.FromContext(r.Context()).ErrorContext(
+						r.Context(),
+						"Failed to marshal error response",
+						slog.Any("err", errMarshal),
+					)
 
 					return
 				}
