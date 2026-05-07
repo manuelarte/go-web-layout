@@ -6,7 +6,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
-	"github.com/manuelarte/go-web-layout/internal/info"
+	"github.com/manuelarte/go-web-layout/internal/config/info"
 )
 
 //nolint:wrapcheck // will be wrapped by the caller

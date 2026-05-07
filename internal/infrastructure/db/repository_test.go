@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	goweblayout "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
@@ -32,7 +33,7 @@ func TestRepositoryGetAllSuccessful(t *testing.T) {
 			t.Parallel()
 
 			// Arrange
-			db, err := config.Migrate(t.Name())
+			db, err := config.Migrate(goweblayout.ResourcesFolder, t.Name())
 			require.NoError(t, err)
 
 			r := NewRepository(db)
@@ -52,7 +53,7 @@ func TestRepositoryGetByIDNotFound(t *testing.T) {
 	t.Parallel()
 
 	// Arrange
-	db, err := config.Migrate(t.Name())
+	db, err := config.Migrate(goweblayout.ResourcesFolder, t.Name())
 	require.NoError(t, err)
 
 	r := NewRepository(db)

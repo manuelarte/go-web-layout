@@ -1,4 +1,4 @@
-package wideevents
+package logging
 
 import (
 	"context"
@@ -6,9 +6,6 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
-
-	usersv1 "github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
-	"github.com/manuelarte/go-web-layout/internal/logging"
 )
 
 type (
@@ -26,6 +23,12 @@ type (
 		Message string `json:"message"`
 	}
 )
+
+func AddCreateUserLogEvent(ctx context.Context) context.Context {
+	event := &createUserLogEvent{}
+
+	return context.WithValue(ctx, createUserLogKey{}, event)
+}
 
 func (we *createUserLogEvent) isSuccessful() bool {
 	return !we.isError()
@@ -51,7 +54,9 @@ func (we *createUserLogEvent) mapToArgs() []any {
 
 // AddCreateUserWideEvent returns a gRPC unary server interceptor that injects
 // the create user wide event into the context.
-func AddCreateUserWideEvent() grpc.UnaryServerInterceptor {
+func AddCreateUserWideEvent(
+	injectWideEventFn func(ctx context.Context, req any) (context.Context, bool),
+) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -60,23 +65,21 @@ func AddCreateUserWideEvent() grpc.UnaryServerInterceptor {
 	) (any, error) {
 		event := &createUserLogEvent{}
 
-		switch req.(type) {
-		case *usersv1.CreateUserRequest:
-			ctx = context.WithValue(ctx, createUserLogKey{}, event)
-		default:
+		ctx, ok := injectWideEventFn(ctx, req)
+
+		toReturnAny, toReturnErr := handler(ctx, req)
+		if !ok {
 			return handler(ctx, req)
 		}
 
-		toReturnAny, toReturnErr := handler(ctx, req)
-
 		if event.isSuccessful() {
-			logging.FromContext(ctx).InfoContext(
+			FromContext(ctx).InfoContext(
 				ctx,
 				"User created",
 				event.mapToArgs()...,
 			)
 		} else {
-			logging.FromContext(ctx).ErrorContext(
+			FromContext(ctx).ErrorContext(
 				ctx,
 				"Error creating user",
 				event.mapToArgs()...,

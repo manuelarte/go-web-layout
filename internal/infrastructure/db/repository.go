@@ -12,9 +12,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
+	"github.com/manuelarte/go-web-layout/internal/config/logging"
+	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db/sqlc"
-	"github.com/manuelarte/go-web-layout/internal/logging"
-	"github.com/manuelarte/go-web-layout/internal/observability"
 	"github.com/manuelarte/go-web-layout/internal/pagination"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )

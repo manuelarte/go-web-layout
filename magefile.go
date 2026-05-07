@@ -174,8 +174,17 @@ func Format() error {
 func Lint() error {
 	mg.Deps(Format)
 	fmt.Println("Linting...")
+
+	fmt.Println("Go Arch Lint")
+	cmd := exec.Command("go-arch-lint", "check")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
 	fmt.Println("Running golangci-lint with --fix to automatically fix issues where possible")
-	cmd := exec.Command("golangci-lint", "run", "--fix", "./...")
+	cmd = exec.Command("golangci-lint", "run", "--fix", "./...")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -272,6 +281,7 @@ func Tools() error {
 	toInstall := []string{
 		// keep-sorted start
 		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
+		"github.com/fe3dback/go-arch-lint@latest",
 		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4",
 		"github.com/google/keep-sorted@v0.7.1",
 		"github.com/sqlc-dev/sqlc/cmd/sqlc@latest",

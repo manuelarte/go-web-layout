@@ -35,6 +35,7 @@ linters:
     - exhaustruct  # If applicable, to be checked in code reviews.
     - forcetypeassert  # Used in a different linter
     - ginkgolinter  # Related to Ginkgo.
+    - goconst  # To be checked in PRs.
     - goheader  # No need of copyright headers.
     - gomodguard  # Not needed for a linter
     - gosmopolitan  # No i18n.

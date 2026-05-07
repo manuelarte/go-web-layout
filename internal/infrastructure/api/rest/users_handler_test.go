@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
+	goweblayout "github.com/manuelarte/go-web-layout"
 	"github.com/manuelarte/go-web-layout/internal/config"
 	"github.com/manuelarte/go-web-layout/internal/users"
 )
@@ -62,7 +63,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			cfg := config.AppEnv{}
 			r := chi.NewRouter()
 			userService := users.NewMockRepository(gomock.NewController(t))
-			CreateRestAPI(r, cfg, userService)
+			CreateRestAPI(r, cfg, userService, goweblayout.SwaggerUI, goweblayout.OpenAPI)
 
 			w := httptest.NewRecorder()
 			url := fmt.Sprintf("/api/v1/users/%s", test.id)
