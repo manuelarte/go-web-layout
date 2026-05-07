@@ -7,12 +7,12 @@ allow:
   depOnAnyVendor: true
 
 components:
-  api:        { in: infrastructure/api/** }
-  services:   { in: services/** }
-  db:         { in: infrastructure/db/** }
-  users:      { in: users }
-  config:     { in: config/** }
-  pagination: { in: pagination }
+  api: {in: infrastructure/api/**}
+  services: {in: services/**}
+  db: {in: infrastructure/db/**}
+  users: {in: users}
+  config: {in: config/**}
+  pagination: {in: pagination}
 
 commonComponents:
   - users
