@@ -93,18 +93,18 @@ func (p Password) Hash() (string, error) {
 	return string(bytes), nil
 }
 
-func (u User) Username() Username {
+func (u *User) Username() Username {
 	return u.username
 }
 
-func (u User) ID() UserID {
+func (u *User) ID() UserID {
 	return u.id
 }
 
-func (u User) CreatedAt() time.Time {
+func (u *User) CreatedAt() time.Time {
 	return u.createdAt
 }
 
-func (u User) UpdatedAt() time.Time {
+func (u *User) UpdatedAt() time.Time {
 	return u.updatedAt
 }
