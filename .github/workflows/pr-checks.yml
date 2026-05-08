@@ -36,8 +36,8 @@ jobs:
           go install github.com/google/keep-sorted@v0.7.1
           keep-sorted .golangci.yml ./resources/openapi.yml
           git diff --exit-code
-  golangci:
-    name: lint
+  code:
+    name: Go linters
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -51,7 +51,11 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.11
+          version: v2.12
+      - name: Install godddlint
+        run: go install github.com/manuelarte/godddlint@latest
+      - name: Run godddlint
+        run: godddlint ./...
   hadolint:
     name: hadolint
     runs-on: ubuntu-latest
