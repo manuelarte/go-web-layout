@@ -54,6 +54,10 @@ jobs:
           version: v2.12
       - name: Install godddlint
         run: go install github.com/manuelarte/godddlint@latest
+      - name: Debug godddlint context
+        run: |
+          pwd
+          find . -name "*.go"
       - name: Run godddlint
         run: godddlint ./...
   hadolint:
