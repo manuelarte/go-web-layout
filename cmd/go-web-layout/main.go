@@ -97,7 +97,7 @@ func run() error {
 		otelchimetric.NewServerResponseBodySize(baseCfg),
 		middleware.Recoverer,
 		middleware.RequestID,
-		middleware.RealIP,
+		middleware.ClientIPFromRemoteAddr,
 		middleware.Timeout(headerTimeout),
 	)
 	rest.CreateRestAPI(r, cfg, userRepo, goweblayout.SwaggerUI, goweblayout.OpenAPI)

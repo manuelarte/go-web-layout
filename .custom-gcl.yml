@@ -1,0 +1,6 @@
+version: v2.12.2
+plugins:
+  # a plugin from a Go proxy
+  - module: "https://github.com/manuelarte/godddlint"
+    import: "https://github.com/manuelarte/godddlint"
+    version: b9cd503fc92d68e13623ecd9a83a9b7eb9f4edbb

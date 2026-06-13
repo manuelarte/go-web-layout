@@ -183,8 +183,12 @@ func Lint() error {
 		return err
 	}
 
-	fmt.Println("Running golangci-lint with --fix to automatically fix issues where possible")
-	cmd = exec.Command("golangci-lint", "run", "--fix", "./...")
+	fmt.Println("creating custom golangci-lint")
+	cmd = exec.Command("golangci-lint", "custom", "-v")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	fmt.Println("Running custom golangci-lint with --fix to automatically fix issues where possible")
+	cmd = exec.Command("./custom-gcl", "run", "--fix", "./...")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
