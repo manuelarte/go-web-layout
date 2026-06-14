@@ -36,17 +36,7 @@ type (
 	NotFoundError struct {
 		ID UserID
 	}
-
-	// Money is a value object that represents money.
-	//godddlint:valueObject
-	Money struct {
-		Amount int
-	}
 )
-
-func (m *Money) Add(amount int) {
-	m.Amount += amount
-}
 
 func (u NotFoundError) Error() string {
 	return fmt.Sprintf("user with id %s not found", u.ID.String())
