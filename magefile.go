@@ -183,8 +183,8 @@ func Lint() error {
 		return err
 	}
 
-	fmt.Println("creating custom golangci-lint")
-	cmd = exec.Command("golangci-lint", "custom", "-v")
+	fmt.Println("Creating custom golangci-lint")
+	cmd = exec.Command("golangci-lint", "custom", "-vv")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	fmt.Println("Running custom golangci-lint with --fix to automatically fix issues where possible")
@@ -286,7 +286,7 @@ func Tools() error {
 		// keep-sorted start
 		"github.com/bufbuild/buf/cmd/buf@v1.68.4",
 		"github.com/fe3dback/go-arch-lint@latest",
-		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4",
+		"github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2",
 		"github.com/google/keep-sorted@v0.7.1",
 		"github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
 		"go.uber.org/mock/mockgen@latest",

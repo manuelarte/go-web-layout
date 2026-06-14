@@ -25,7 +25,8 @@ formatters:
     # keep-sorted end
 
 linters:
-  default: all
+  enable:
+    - godddlint
   disable:
     # keep-sorted start
     - decorder  # If applicable, to be checked in code reviews.
