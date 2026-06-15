@@ -56,6 +56,10 @@ linters:
 
   settings:
     # keep-sorted start
+    custom:
+      godddlint:
+        type: module
+        description: checks domain structs honor best practices.
     cyclop:
       max-complexity: 30
       package-average: 10
