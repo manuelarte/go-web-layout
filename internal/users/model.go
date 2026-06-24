@@ -20,6 +20,7 @@ var (
 type (
 	// User model to represent a user.
 	//godddlint:entity
+	//go:structinit
 	User struct {
 		id        UserID
 		createdAt time.Time

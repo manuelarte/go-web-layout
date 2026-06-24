@@ -6,3 +6,6 @@ plugins:
   - module: "github.com/manuelarte/godddlint"
     import: "github.com/manuelarte/godddlint/plugin"
     version: latest
+  - module: "github.com/manuelarte/structinit"
+    import: "github.com/manuelarte/structinit/plugin"
+    version: latest
