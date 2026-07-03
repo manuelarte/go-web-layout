@@ -13,7 +13,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/magefile/mage v1.17.2
 	github.com/manuelarte/ptrutils v1.0.2
-	github.com/oapi-codegen/runtime v1.4.1
+	github.com/oapi-codegen/runtime v1.4.2
 	github.com/prometheus/client_golang v1.23.2
 	github.com/riandyrn/otelchi v0.12.3
 	github.com/samber/lo v1.53.0
