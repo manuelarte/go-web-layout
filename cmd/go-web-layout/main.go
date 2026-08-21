@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v3"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
@@ -65,7 +66,10 @@ func run() error {
 	}()
 
 	// Create a bridged slog logger
-	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp))
+	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp)).With(
+		slog.String("app", info.AppName),
+		slog.String("version", info.Version),
+	)
 
 	dbConn, err := config.Migrate(goweblayout.ResourcesFolder)
 	if err != nil {
@@ -89,8 +93,10 @@ func run() error {
 	headerTimeout := 4 * time.Second
 	r.Use(
 		loggingCfg.Middleware(logger),
+		httplog.RequestLogger(logger, &httplog.Options{
+			RecoverPanics: true,
+		}),
 		addHostValue(),
-		middleware.Logger,
 		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewServerRequestDuration(baseCfg),
 		otelchimetric.NewServerActiveRequests(baseCfg),

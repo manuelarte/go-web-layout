@@ -125,7 +125,7 @@ func CreateRestAPI(
 	sfs, _ := fs.Sub(fs.FS(swaggerFS), "static/swagger-ui")
 	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
 
-	r.Get("/api/docs", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(openAPIBytes)
 	})
 }
