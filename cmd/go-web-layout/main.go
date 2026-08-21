@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v3"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	logeventgrpc "github.com/manuelarte/logevent/mw/grpc"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -35,6 +36,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/services"
+	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 func main() {
@@ -45,7 +47,6 @@ func main() {
 	}
 }
 
-//nolint:funlen // main function
 func run() error {
 	ctx := context.Background()
 
@@ -138,24 +139,17 @@ func run() error {
 
 	createUserService := services.NewCreateUser(userRepo)
 
-	injectWideEventFn := func(ctx context.Context, req any) (context.Context, bool) {
-		switch req.(type) {
-		case *usersv1.CreateUserRequest:
-			return loggingCfg.AddCreateUserLogEvent(ctx), true
-		default:
-			return ctx, false
-		}
-	}
-
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 			loggingCfg.AddToContext(logger),
-			loggingCfg.AddCreateUserWideEvent(injectWideEventFn),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
+		),
+		grpc.UnaryInterceptor(
+			logeventgrpc.UnaryServerInterceptor(users.CreateUserLogEvent{}, logger),
 		),
 	)
 	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(createUserService))

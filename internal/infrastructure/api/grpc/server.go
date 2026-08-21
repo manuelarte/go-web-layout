@@ -5,12 +5,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/manuelarte/logevent/mw"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	wideEventLogging "github.com/manuelarte/go-web-layout/internal/config/logging"
 	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/services"
@@ -43,7 +43,10 @@ func (s Server) CreateUser(
 			Value: attribute.StringValue(request.GetUsername()),
 		},
 	)
-	wideEventLogging.AddUsername(ctx, request.GetUsername())
+
+	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+		event.Username = request.GetUsername()
+	})
 
 	user, err := s.createUserService.CreateUser(
 		ctx,
@@ -51,12 +54,19 @@ func (s Server) CreateUser(
 		users.Password(request.GetPassword()),
 	)
 	if err != nil {
-		wideEventLogging.AddError(ctx, "db", err)
+		_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+			event.Error = &users.CreateUserErrorLogEvent{
+				Type: "db",
+				Err:  err,
+			}
+		})
 
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	wideEventLogging.AddUserID(ctx, user.ID().String())
+	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+		event.UserID = user.ID().String()
+	})
 
 	return &usersv1.CreateUserResponse{
 		User: new(transformUser(user)),
