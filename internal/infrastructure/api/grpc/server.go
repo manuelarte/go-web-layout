@@ -93,6 +93,7 @@ func transformUser(user users.User) usersv1.User {
 // only to specific methods (currently CreateUser).
 type ServiceWithSelectiveInterceptor struct {
 	usersv1.UnimplementedUsersServiceServer
+
 	actual      usersv1.UsersServiceServer
 	interceptor grpc.UnaryServerInterceptor
 	logger      *slog.Logger
@@ -118,6 +119,7 @@ func (s *ServiceWithSelectiveInterceptor) CreateUser(
 	request *usersv1.CreateUserRequest,
 ) (*usersv1.CreateUserResponse, error) {
 	handler := func(ctx context.Context, req any) (any, error) {
+		//nolint:errcheck // impossible case
 		return s.actual.CreateUser(ctx, req.(*usersv1.CreateUserRequest))
 	}
 
@@ -131,6 +133,7 @@ func (s *ServiceWithSelectiveInterceptor) CreateUser(
 		return nil, err
 	}
 
+	//nolint:errcheck // impossible case
 	return resp.(*usersv1.CreateUserResponse), nil
 }
 
@@ -139,5 +142,6 @@ func (s *ServiceWithSelectiveInterceptor) DeleteUser(
 	ctx context.Context,
 	request *usersv1.DeleteUserRequest,
 ) (*usersv1.DeleteUserResponse, error) {
+	//nolint:wrapcheck // we want to pass through the error as is
 	return s.actual.DeleteUser(ctx, request)
 }
