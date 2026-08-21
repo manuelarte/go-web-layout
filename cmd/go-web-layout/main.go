@@ -148,11 +148,16 @@ func run() error {
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 		),
-		grpc.UnaryInterceptor(
-			logeventgrpc.UnaryServerInterceptor(users.CreateUserLogEvent{}, logger),
-		),
 	)
-	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(createUserService))
+
+	// Create base service and wrap with logevent interceptor for CreateUser method only
+	baseService := grpc2.NewServer(createUserService)
+	wrappedService := grpc2.NewServiceWithSelectiveInterceptor(
+		baseService,
+		logeventgrpc.UnaryServerInterceptor(users.CreateUserLogEvent{}, logger),
+		logger,
+	)
+	usersv1.RegisterUsersServiceServer(s, wrappedService)
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {

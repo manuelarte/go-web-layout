@@ -4,9 +4,11 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/manuelarte/logevent/mw"
 	"go.opentelemetry.io/otel/attribute"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -85,4 +87,57 @@ func transformUser(user users.User) usersv1.User {
 		UpdatedAt: timestamppb.New(user.UpdatedAt()),
 		Username:  string(user.Username()),
 	}
+}
+
+// ServiceWithSelectiveInterceptor wraps a UsersServiceServer and applies an interceptor
+// only to specific methods (currently CreateUser).
+type ServiceWithSelectiveInterceptor struct {
+	usersv1.UnimplementedUsersServiceServer
+	actual      usersv1.UsersServiceServer
+	interceptor grpc.UnaryServerInterceptor
+	logger      *slog.Logger
+}
+
+// NewServiceWithSelectiveInterceptor creates a new UsersServiceServer with an interceptor
+// applied selectively to specific methods.
+func NewServiceWithSelectiveInterceptor(
+	actual usersv1.UsersServiceServer,
+	interceptor grpc.UnaryServerInterceptor,
+	logger *slog.Logger,
+) *ServiceWithSelectiveInterceptor {
+	return &ServiceWithSelectiveInterceptor{
+		actual:      actual,
+		interceptor: interceptor,
+		logger:      logger,
+	}
+}
+
+// CreateUser applies the interceptor before delegating to the actual service.
+func (s *ServiceWithSelectiveInterceptor) CreateUser(
+	ctx context.Context,
+	request *usersv1.CreateUserRequest,
+) (*usersv1.CreateUserResponse, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
+		return s.actual.CreateUser(ctx, req.(*usersv1.CreateUserRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		Server:     s,
+		FullMethod: usersv1.UsersService_CreateUser_FullMethodName,
+	}
+
+	resp, err := s.interceptor(ctx, request, info, handler)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.(*usersv1.CreateUserResponse), nil
+}
+
+// DeleteUser passes through to the actual service without interceptor.
+func (s *ServiceWithSelectiveInterceptor) DeleteUser(
+	ctx context.Context,
+	request *usersv1.DeleteUserRequest,
+) (*usersv1.DeleteUserResponse, error) {
+	return s.actual.DeleteUser(ctx, request)
 }
