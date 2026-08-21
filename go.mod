@@ -7,11 +7,13 @@ require (
 	buf.build/go/protovalidate v1.2.0
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/go-chi/chi/v5 v5.3.1
+	github.com/go-chi/httplog/v3 v3.4.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/golaxo/gofieldselect v0.0.2
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/magefile/mage v1.17.2
+	github.com/manuelarte/logevent v0.0.5
 	github.com/manuelarte/ptrutils v1.0.2
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/prometheus/client_golang v1.24.1
@@ -53,7 +55,6 @@ require (
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/getkin/kin-openapi v0.144.0 // indirect
-	github.com/go-chi/httplog/v3 v3.4.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.22.5 // indirect
@@ -61,7 +62,6 @@ require (
 	github.com/google/cel-go v0.29.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/manuelarte/gospecpaths v0.1.0 // indirect
-	github.com/manuelarte/logevent v0.0.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.7.1 // indirect
