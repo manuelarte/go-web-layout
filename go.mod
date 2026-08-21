@@ -7,11 +7,13 @@ require (
 	buf.build/go/protovalidate v1.2.0
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/go-chi/chi/v5 v5.3.1
+	github.com/go-chi/httplog/v3 v3.4.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/golaxo/gofieldselect v0.0.2
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/magefile/mage v1.17.2
+	github.com/manuelarte/logevent v0.0.5
 	github.com/manuelarte/ptrutils v1.0.2
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/prometheus/client_golang v1.24.1

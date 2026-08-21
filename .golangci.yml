@@ -21,7 +21,8 @@ formatters:
         - pattern: "interface{}"
           replacement: "any"
     gofumpt:
-      extra-rules: true
+      extra:
+        group-params: true
     # keep-sorted end
 
 linters:
@@ -33,6 +34,7 @@ linters:
     - err113  # This leads to lots of unnecessary allocations and boilerplate.
     - errchkjson  # No json.
     - exhaustruct  # If applicable, to be checked in code reviews.
+    - exhaustruct_v5  # If applicable, to be checked in code reviews.
     - forcetypeassert  # Used in a different linter
     - ginkgolinter  # Related to Ginkgo.
     - goconst  # To be checked in PRs.

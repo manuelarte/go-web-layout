@@ -55,7 +55,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12
+          version: v2.13
   hadolint:
     name: hadolint
     runs-on: ubuntu-latest
@@ -93,7 +93,7 @@ jobs:
           check_filenames: true
           check_hidden: true
       - name: Check spelling of entire workspace
-        uses: crate-ci/typos@37bb98842b0d8c4ffebdb75301a13db0267cef89 # v1
+        uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
   markdownlint:
     name: markdownlint
     runs-on: ubuntu-latest
@@ -149,7 +149,7 @@ jobs:
       - name: Wait for app to be healthy
         run: |
           for i in {1..30}; do
-            if curl -f http://localhost:3001/api/docs > /dev/null 2>&1; then
+            if curl -f http://localhost:3001/docs > /dev/null 2>&1; then
               echo "App is healthy"
               exit 0
             fi
@@ -160,7 +160,7 @@ jobs:
           exit 1
       - uses: schemathesis/action@806cace2053cbbac93188e1281ff7da415643160 # v3
         with:
-          schema: "http://localhost:3001/api/docs"
+          schema: "http://localhost:3001/docs"
       - name: Stop the app
         if: always()
         run: |

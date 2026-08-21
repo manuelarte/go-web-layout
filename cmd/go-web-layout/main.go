@@ -12,7 +12,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v3"
 	interceptorlogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	logeventgrpc "github.com/manuelarte/logevent/mw/grpc"
 	"github.com/riandyrn/otelchi"
 	otelchimetric "github.com/riandyrn/otelchi/metric"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -34,6 +36,7 @@ import (
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/rest"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/db"
 	"github.com/manuelarte/go-web-layout/internal/services"
+	"github.com/manuelarte/go-web-layout/internal/users"
 )
 
 func main() {
@@ -44,7 +47,6 @@ func main() {
 	}
 }
 
-//nolint:funlen // main function
 func run() error {
 	ctx := context.Background()
 
@@ -65,7 +67,10 @@ func run() error {
 	}()
 
 	// Create a bridged slog logger
-	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp))
+	logger := otelslog.NewLogger(info.AppName, otelslog.WithLoggerProvider(lp)).With(
+		slog.String("app", info.AppName),
+		slog.String("version", info.Version),
+	)
 
 	dbConn, err := config.Migrate(goweblayout.ResourcesFolder)
 	if err != nil {
@@ -89,8 +94,10 @@ func run() error {
 	headerTimeout := 4 * time.Second
 	r.Use(
 		loggingCfg.Middleware(logger),
+		httplog.RequestLogger(logger, &httplog.Options{
+			RecoverPanics: true,
+		}),
 		addHostValue(),
-		middleware.Logger,
 		otelchi.Middleware(info.AppName, otelchi.WithChiRoutes(r)),
 		otelchimetric.NewServerRequestDuration(baseCfg),
 		otelchimetric.NewServerActiveRequests(baseCfg),
@@ -132,27 +139,25 @@ func run() error {
 
 	createUserService := services.NewCreateUser(userRepo)
 
-	injectWideEventFn := func(ctx context.Context, req any) (context.Context, bool) {
-		switch req.(type) {
-		case *usersv1.CreateUserRequest:
-			return loggingCfg.AddCreateUserLogEvent(ctx), true
-		default:
-			return ctx, false
-		}
-	}
-
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			interceptorlogging.UnaryServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 			loggingCfg.AddToContext(logger),
-			loggingCfg.AddCreateUserWideEvent(injectWideEventFn),
 		),
 		grpc.ChainStreamInterceptor(
 			interceptorlogging.StreamServerInterceptor(loggingCfg.InterceptorLogger(logger), loggingOpts...),
 		),
 	)
-	usersv1.RegisterUsersServiceServer(s, grpc2.NewServer(createUserService))
+
+	// Create base service and wrap with logevent interceptor for CreateUser method only
+	baseService := grpc2.NewServer(createUserService)
+	wrappedService := grpc2.NewServiceWithSelectiveInterceptor(
+		baseService,
+		logeventgrpc.UnaryServerInterceptor(users.CreateUserLogEvent{}, logger),
+		logger,
+	)
+	usersv1.RegisterUsersServiceServer(s, wrappedService)
 	logger.InfoContext(ctx, "Starting gRPC server", slog.Any("addr", lis.Addr()))
 
 	go func() {

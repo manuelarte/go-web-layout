@@ -4,13 +4,15 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
+	"github.com/manuelarte/logevent/mw"
 	"go.opentelemetry.io/otel/attribute"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	wideEventLogging "github.com/manuelarte/go-web-layout/internal/config/logging"
 	"github.com/manuelarte/go-web-layout/internal/config/observability"
 	"github.com/manuelarte/go-web-layout/internal/infrastructure/api/grpc/users/v1"
 	"github.com/manuelarte/go-web-layout/internal/services"
@@ -43,7 +45,10 @@ func (s Server) CreateUser(
 			Value: attribute.StringValue(request.GetUsername()),
 		},
 	)
-	wideEventLogging.AddUsername(ctx, request.GetUsername())
+
+	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+		event.Username = request.GetUsername()
+	})
 
 	user, err := s.createUserService.CreateUser(
 		ctx,
@@ -51,12 +56,19 @@ func (s Server) CreateUser(
 		users.Password(request.GetPassword()),
 	)
 	if err != nil {
-		wideEventLogging.AddError(ctx, "db", err)
+		_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+			event.Error = &users.CreateUserErrorLogEvent{
+				Type: "db",
+				Err:  err,
+			}
+		})
 
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	wideEventLogging.AddUserID(ctx, user.ID().String())
+	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+		event.UserID = user.ID().String()
+	})
 
 	return &usersv1.CreateUserResponse{
 		User: new(transformUser(user)),
@@ -75,4 +87,61 @@ func transformUser(user users.User) usersv1.User {
 		UpdatedAt: timestamppb.New(user.UpdatedAt()),
 		Username:  string(user.Username()),
 	}
+}
+
+// ServiceWithSelectiveInterceptor wraps a UsersServiceServer and applies an interceptor
+// only to specific methods (currently CreateUser).
+type ServiceWithSelectiveInterceptor struct {
+	usersv1.UnimplementedUsersServiceServer
+
+	actual      usersv1.UsersServiceServer
+	interceptor grpc.UnaryServerInterceptor
+	logger      *slog.Logger
+}
+
+// NewServiceWithSelectiveInterceptor creates a new UsersServiceServer with an interceptor
+// applied selectively to specific methods.
+func NewServiceWithSelectiveInterceptor(
+	actual usersv1.UsersServiceServer,
+	interceptor grpc.UnaryServerInterceptor,
+	logger *slog.Logger,
+) *ServiceWithSelectiveInterceptor {
+	return &ServiceWithSelectiveInterceptor{
+		actual:      actual,
+		interceptor: interceptor,
+		logger:      logger,
+	}
+}
+
+// CreateUser applies the interceptor before delegating to the actual service.
+func (s *ServiceWithSelectiveInterceptor) CreateUser(
+	ctx context.Context,
+	request *usersv1.CreateUserRequest,
+) (*usersv1.CreateUserResponse, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
+		//nolint:errcheck // impossible case
+		return s.actual.CreateUser(ctx, req.(*usersv1.CreateUserRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		Server:     s,
+		FullMethod: usersv1.UsersService_CreateUser_FullMethodName,
+	}
+
+	resp, err := s.interceptor(ctx, request, info, handler)
+	if err != nil {
+		return nil, err
+	}
+
+	//nolint:errcheck // impossible case
+	return resp.(*usersv1.CreateUserResponse), nil
+}
+
+// DeleteUser passes through to the actual service without interceptor.
+func (s *ServiceWithSelectiveInterceptor) DeleteUser(
+	ctx context.Context,
+	request *usersv1.DeleteUserRequest,
+) (*usersv1.DeleteUserResponse, error) {
+	//nolint:wrapcheck // we want to pass through the error as is
+	return s.actual.DeleteUser(ctx, request)
 }
