@@ -1,6 +1,6 @@
 module github.com/manuelarte/go-web-layout
 
-go 1.26.0
+go 1.27.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260709200747-435963d16310.1
@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/magefile/mage v1.17.2
-	github.com/manuelarte/logevent v0.0.5
+	github.com/manuelarte/logevent v0.0.6
 	github.com/manuelarte/ptrutils v1.0.2
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/prometheus/client_golang v1.24.1

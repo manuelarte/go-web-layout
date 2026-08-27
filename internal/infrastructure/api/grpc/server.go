@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/manuelarte/logevent/mw"
+	"github.com/manuelarte/logevent"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -46,7 +46,7 @@ func (s Server) CreateUser(
 		},
 	)
 
-	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+	_ = logevent.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
 		event.Username = request.GetUsername()
 	})
 
@@ -56,7 +56,7 @@ func (s Server) CreateUser(
 		users.Password(request.GetPassword()),
 	)
 	if err != nil {
-		_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+		_ = logevent.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
 			event.Error = &users.CreateUserErrorLogEvent{
 				Type: "db",
 				Err:  err,
@@ -66,7 +66,7 @@ func (s Server) CreateUser(
 		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
-	_ = mw.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
+	_ = logevent.UpdateLogEvent(ctx, func(event *users.CreateUserLogEvent) {
 		event.UserID = user.ID().String()
 	})
 
