@@ -60,6 +60,7 @@ require (
 	github.com/go-openapi/swag/jsonname v0.25.5 // indirect
 	github.com/google/cel-go v0.30.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
+	github.com/manuelarte/embeddedswagger v0.0.0-20260903174411-3a8dd8e87c37 // indirect
 	github.com/manuelarte/gospecpaths v0.1.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect

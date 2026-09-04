@@ -63,7 +63,7 @@ func TestUsersHandler_GetUser_Error(t *testing.T) {
 			cfg := config.AppEnv{}
 			r := chi.NewRouter()
 			userService := users.NewMockRepository(gomock.NewController(t))
-			CreateRestAPI(r, cfg, userService, goweblayout.SwaggerUI, goweblayout.OpenAPI)
+			CreateRestAPI(r, cfg, userService, goweblayout.OpenAPI)
 
 			w := httptest.NewRecorder()
 			url := fmt.Sprintf("/api/v1/users/%s", test.id)
