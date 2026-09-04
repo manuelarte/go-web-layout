@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/magefile/mage v1.17.2
+	github.com/manuelarte/embeddedswagger v0.0.0-20260903174411-3a8dd8e87c37
 	github.com/manuelarte/logevent v0.0.6
 	github.com/manuelarte/ptrutils v1.0.2
 	github.com/oapi-codegen/runtime v1.7.0

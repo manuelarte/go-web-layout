@@ -107,7 +107,7 @@ func run() error {
 		middleware.ClientIPFromRemoteAddr,
 		middleware.Timeout(headerTimeout),
 	)
-	rest.CreateRestAPI(r, cfg, userRepo, goweblayout.SwaggerUI, goweblayout.OpenAPI)
+	rest.CreateRestAPI(r, cfg, userRepo, goweblayout.OpenAPI)
 
 	srvErr := make(chan error, 1)
 

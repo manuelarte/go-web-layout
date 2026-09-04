@@ -1,15 +1,14 @@
 package rest
 
 import (
-	"embed"
 	"encoding/json"
 	"errors"
-	"io/fs"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/manuelarte/embeddedswagger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/manuelarte/go-web-layout/internal/config"
@@ -29,7 +28,6 @@ func CreateRestAPI(
 	r chi.Router,
 	cfg config.AppEnv,
 	userRepository users.Repository,
-	swaggerFS embed.FS,
 	openAPIBytes []byte,
 ) {
 	api := API{
@@ -121,11 +119,5 @@ func CreateRestAPI(
 	// Prometheus
 	r.Handle("/metrics", promhttp.Handler())
 
-	// Swagger
-	sfs, _ := fs.Sub(fs.FS(swaggerFS), "static/swagger-ui")
-	r.Handle("/swagger/*", http.StripPrefix("/swagger/", http.FileServer(http.FS(sfs))))
-
-	r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write(openAPIBytes)
-	})
+	_ = embeddedswagger.Add(embeddedswagger.DefaultConfig(openAPIBytes), r)
 }
