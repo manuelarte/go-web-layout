@@ -109,8 +109,8 @@ github.com/manuelarte/embeddedswagger v0.0.0-20260903174411-3a8dd8e87c37 h1:rvjB
 github.com/manuelarte/embeddedswagger v0.0.0-20260903174411-3a8dd8e87c37/go.mod h1:qro9AMZuZVSYuxk+aSok+hLmQ/K4q3suy53soW5wGkg=
 github.com/manuelarte/gospecpaths v0.1.0 h1:x78x8UmBGNpcSfWw72ISza2MuaZRQ0a9Xx1h4zHx3UE=
 github.com/manuelarte/gospecpaths v0.1.0/go.mod h1:zNqP/Wm4MqL3Nlfz7Xx5alPPOkXFUdng7AftmU2ySTw=
-github.com/manuelarte/logevent v0.0.6 h1:UXpeTgaTlEVach9a4nGqCVfqyTZLvBVuFRW8mo8Kd7I=
-github.com/manuelarte/logevent v0.0.6/go.mod h1:NUJYYGMkNZKAQxR9pLLDIEPOZ5vALn4PEhNSKuiS1dE=
+github.com/manuelarte/logevent v0.0.7 h1:ujhFx/CL2MjWLXXboWxTu1Lq/neBhTO6J3g8+nz7Zio=
+github.com/manuelarte/logevent v0.0.7/go.mod h1:2rjQyjAeSeTBtmI/Oq/IE9TNwe/OkXukgKv0CpFcRlE=
 github.com/manuelarte/ptrutils v1.0.2 h1:YEDdPxd1p6F9JzaytpTu+XsaxWf7psKWeahZ9RZmaCE=
 github.com/manuelarte/ptrutils v1.0.2/go.mod h1:ThCS3whPljc02UlWsJ9rs215r7wqGzkSiA7dJzYta88=
 github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
@@ -252,8 +252,8 @@ golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7/go.mod h1:qpuaurCH72eLCgpAm/
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20210428140749-89ef3d95e781/go.mod h1:OJAsFXCWl8Ukc7SiCT/9KSuxbyM7479/AVlXFRxuMCk=
 golang.org/x/net v0.0.0-20220225172249-27dd8689420f/go.mod h1:CfG3xpIq0wQ8r1q4Su4UZFWDARRcnwPjda9FqA0JpMk=
-golang.org/x/net v0.58.0 h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=
-golang.org/x/net v0.58.0/go.mod h1:YwCddHnFlT7eLQqVprV19OnhLGtc5xOKgE0RyqgfWAU=
+golang.org/x/net v0.59.0 h1:5zfYln+w5XCxwrnMMJPufRgNoXEaGxl0wo5GqPXyues=
+golang.org/x/net v0.59.0/go.mod h1:2DA/G1UfVbCpQPeWTmMPGY7Cs2PkBkwu743bVX5PIVg=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
