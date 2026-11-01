@@ -158,7 +158,7 @@ jobs:
           done
           echo "App failed to start"
           exit 1
-      - uses: schemathesis/action@806cace2053cbbac93188e1281ff7da415643160 # v3
+      - uses: schemathesis/action@b0cacf86f25caaa79ac110cc2077afd70fdd67ff # v3
         with:
           schema: "http://localhost:3001/docs"
       - name: Stop the app
