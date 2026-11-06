@@ -16,7 +16,7 @@ require (
 	github.com/manuelarte/embeddedswagger v0.0.0-20260903174411-3a8dd8e87c37
 	github.com/manuelarte/logevent v0.0.7
 	github.com/manuelarte/ptrutils v1.0.2
-	github.com/oapi-codegen/runtime v1.7.0
+	github.com/oapi-codegen/runtime v1.8.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/riandyrn/otelchi v0.12.3
 	github.com/samber/lo v1.53.0
@@ -37,7 +37,7 @@ require (
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/sync v0.24.0
-	google.golang.org/grpc v1.84.0
+	google.golang.org/grpc v1.85.0
 	google.golang.org/protobuf v1.36.12
 )
 
